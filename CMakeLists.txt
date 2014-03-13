@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( ballDetection )
+find_package( OpenCV REQUIRED )
+add_executable( ballDetection ballDetection.cpp )
+target_link_libraries( ballDetection ${OpenCV_LIBS} )
