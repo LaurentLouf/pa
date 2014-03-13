@@ -23,17 +23,27 @@ int H_min = 80 ;
 int H_max = 95 ;
 int S_min = 0 ;
 int S_max = 255 ;
-int L_min = 0 ;
-int L_max = 255 ;
+int V_min = 0 ;
+int V_max = 255 ;
 
 static const char WINDOW_ORIGIN[] = "Original Image";
 static const char WINDOW_THRESHOLD[] = "Image with threshold applied";
 static const char WINDOW_THRESHOLD_NOISE[] = "Image with threshold applied and noise cancelation";
 static const char WINDOW_THRESHOLD_NOISE_BLUR[] = "Image with threshold applied and noise cancelation and blur";
+static const char WINDOW_CONFIG[] = "Configuration";
 
 static const char WINDOW_HUE[] = "Channel Hue";
 static const char WINDOW_LIGHT[] = "Channel Lightness";
 static const char WINDOW_SATURATION[] = "Channel Saturation";
+
+static const char TRACKBAR_HUE_MIN[] = "Hue min";
+static const char TRACKBAR_HUE_MAX[] = "Hue max";
+
+static const char TRACKBAR_SATURATION_MIN[] = "Saturation min";
+static const char TRACKBAR_SATURATION_MAX[] = "Saturation max";
+
+static const char TRACKBAR_VALUE_MIN[] = "Value min";
+static const char TRACKBAR_VALUE_MAX[] = "Value max";
 
 
 Mat hlsChannels[3];
@@ -88,12 +98,21 @@ int main( int argc, char** argv )
     namedWindow(WINDOW_ORIGIN) ;
     namedWindow(WINDOW_THRESHOLD);
     namedWindow(WINDOW_THRESHOLD_NOISE);
-    namedWindow(WINDOW_THRESHOLD_NOISE_BLUR);    
+    namedWindow(WINDOW_THRESHOLD_NOISE_BLUR);  
+    namedWindow(WINDOW_CONFIG);  
+
+    createTrackbar(TRACKBAR_HUE_MIN, WINDOW_CONFIG, &H_min, 255) ;  
+    createTrackbar(TRACKBAR_HUE_MAX, WINDOW_CONFIG, &H_max, 255) ;  
+    createTrackbar(TRACKBAR_SATURATION_MIN, WINDOW_CONFIG, &S_min, 255) ;  
+    createTrackbar(TRACKBAR_SATURATION_MAX, WINDOW_CONFIG, &S_max, 255) ;  
+    createTrackbar(TRACKBAR_VALUE_MIN, WINDOW_CONFIG, &V_min, 255) ;  
+    createTrackbar(TRACKBAR_VALUE_MAX, WINDOW_CONFIG, &V_max, 255) ;  
 
     moveWindow(WINDOW_ORIGIN, 0, 0) ;
     moveWindow(WINDOW_THRESHOLD, 0, 0);
     moveWindow(WINDOW_THRESHOLD_NOISE, 0, 0);
     moveWindow(WINDOW_THRESHOLD_NOISE_BLUR, 0, 0);
+    moveWindow(WINDOW_CONFIG, 0, 0);
 
     for(;;)
     {
@@ -113,7 +132,7 @@ int main( int argc, char** argv )
         cvtColor(image, imageFiltered, CV_RGB2HSV);
 
         // Filtering part : Application of the threshold to keep only the color of the ball
-        inRange(imageFiltered, Scalar(H_min, L_min, S_min), Scalar(H_max, L_max, S_max), imageFiltered); 
+        inRange(imageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), imageFiltered); 
         endFiltering = (float) clock() ;
 
         #ifdef DISPLAY
