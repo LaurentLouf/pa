@@ -71,7 +71,7 @@ int main( int argc, char** argv )
 {
     // Benchmark variables
     struct timeval tv_begin, tv_end, beginTime, endTime;
-    double filteringTime=0 , noiseTime=0, contourTime=0, readTime=0, totalTime; 
+    double filteringTime=0 , noiseTime=0, contourTime=0, readTime=0, totalTime, finalLoop; 
 
     // Image processing vars
     Mat image, imageFiltered, imageTmp ;
@@ -104,6 +104,7 @@ int main( int argc, char** argv )
         cout << "Could not initialize capturing...\n";
         return 0;
     }
+    int n = cap.get(CV_CAP_PROP_FRAME_COUNT);
 
     #ifdef DISPLAY
         // Create the windows
@@ -139,19 +140,21 @@ int main( int argc, char** argv )
         ocl::setDevice(devices[0]);
 
     #endif
-
+    
     gettimeofday(&beginTime, NULL);
 
-    for(;;)
+    for(i=0 ; i < n ; i++)
     {
         //begin = (float) clock() ;
-        i++ ;
 
         gettimeofday(&tv_begin, NULL);
         Mat frame;
-        cap >> frame;
-        if( frame.empty() )
+        bool isStreamOK = cap.read(frame);gettimeofday(&tv_end, NULL);
+        //cap >> frame;
+        if( !isStreamOK )
+        {
             break;
+        }
 
         frame.copyTo(image);
         gettimeofday(&tv_end, NULL);
@@ -344,6 +347,8 @@ int main( int argc, char** argv )
         }
             
     }
+    
+    finalLoop = (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);
     gettimeofday(&endTime, NULL);
     totalTime = (double) (endTime.tv_sec - beginTime.tv_sec) + ((double) (endTime.tv_usec - beginTime.tv_usec)/1000000);
     
@@ -351,12 +356,13 @@ int main( int argc, char** argv )
     #ifndef DISPLAY
         //cout << stringOutput.str() ;
     #endif
-
+    cout << "FRAMES : " << n << endl;
     cout << "Total Time : " << totalTime << "s" << endl;
     cout << " Read time : " << readTime << "s" << endl;
     cout << " Filtering time : " << filteringTime << "s" << endl;
     cout << " Noise cancellation time : " << noiseTime << "s" << endl;
     cout << " Contour determination time : " << contourTime << "s" << endl;
+    cout << " Final Loop : " << finalLoop << "s" << endl;
 
     /*cout << "Filtering executed in " << filteringTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
     cout << "Noise cancelation executed in " << noiseTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
