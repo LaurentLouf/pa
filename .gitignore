@@ -12,6 +12,9 @@
 *.la
 *.a
 
+# ocl and amd files
+*.clb
+
 # CMake files
 CMakeCache.txt
 cmake_install.cmake

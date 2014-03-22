@@ -1,7 +1,9 @@
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-//#include "opencv2/gpu/gpu.hpp"
+#include "opencv2/gpu/gpu.hpp"
+#include "opencv2/ocl/ocl.hpp"
+#include "opencv2/nonfree/ocl.hpp"
 
 #include <iostream>
 #include <ctype.h>
@@ -9,8 +11,9 @@
 #include <sstream>
 #include <cmath>
 
-#define DISPLAY
+//#define DISPLAY
 #define HOUGHh
+#define OCL
 
 int HUE_CHANNEL = 0 ;
 int SATURATION_CHANNEL = 2 ; 
@@ -87,7 +90,7 @@ int main( int argc, char** argv )
 
 
     // Get the video (filename or device)
-    cap.open("MVI_7223.MOV");
+    cap.open("MVI_7319.MOV");
     if( !cap.isOpened() )
     {
         cout << "Could not initialize capturing...\n";
@@ -114,6 +117,18 @@ int main( int argc, char** argv )
     moveWindow(WINDOW_THRESHOLD_NOISE_BLUR, 0, 0);
     moveWindow(WINDOW_CONFIG, 0, 0);
 
+    #ifdef OCL
+        ocl::PlatformsInfo platforms;
+        ocl::getOpenCLPlatforms(platforms);
+        ocl::DevicesInfo devices;
+        ocl::getOpenCLDevices(devices);
+        std::cout << "platforms " << platforms.size() << "  devices " << devices.size() << std::endl;
+        ocl::setDevice(devices[0]);
+
+    #endif
+
+    size_t beginTime = time(NULL);
+
     for(;;)
     {
         begin = (float) clock() ;
@@ -129,10 +144,20 @@ int main( int argc, char** argv )
 
         // Filtering part : conversion from one color space to another
         beginFiltering = (float) clock() ;
-        cvtColor(image, imageFiltered, CV_RGB2HSV);
+        #ifdef OCL
+            ocl::oclMat oclImage(image), oclImageFiltered, oclCircles;
+            ocl::cvtColor(oclImage, oclImageFiltered, CV_RGB2HSV);
+            
+            //inRange(oclImageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), oclImageFiltered);
+            imageFiltered = oclImageFiltered;
+            //inRange seems not to work with ocl ...
+            inRange(imageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), imageFiltered);
+        #else
+            cvtColor(image, imageFiltered, CV_RGB2HSV);
 
-        // Filtering part : Application of the threshold to keep only the color of the ball
-        inRange(imageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), imageFiltered); 
+            // Filtering part : Application of the threshold to keep only the color of the ball
+            inRange(imageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), imageFiltered);
+        #endif 
         endFiltering = (float) clock() ;
 
         #ifdef DISPLAY
@@ -143,13 +168,22 @@ int main( int argc, char** argv )
 
         // Noise cancelation
         beginNoise = (float) clock() ;
-        #ifdef GPU
-            gpu::GpuMat gpuImage(imageFiltered), gpuCircles ;
+        #ifdef OCL
+            /*gpu::GpuMat gpuImage(imageFiltered), gpuCircles ;
 
             gpu::erode ( gpuImage, gpuImage, erodeElement );
             gpu::erode ( gpuImage, gpuImage, erodeElement );
             gpu::dilate ( gpuImage, gpuImage, dilateElement );
-            gpu::dilate ( gpuImage, gpuImage, dilateElement );
+            gpu::dilate ( gpuImage, gpuImage, dilateElement );*/
+
+            oclImageFiltered = imageFiltered;
+
+            ocl::erode ( oclImageFiltered, oclImageFiltered, erodeElement );
+            ocl::erode ( oclImageFiltered, oclImageFiltered, erodeElement );
+            ocl::dilate ( oclImageFiltered, oclImageFiltered, dilateElement );
+            ocl::dilate ( oclImageFiltered, oclImageFiltered, dilateElement );
+            // Peut être à supprimer par la suite
+            imageFiltered = oclImageFiltered;
         #else
             erode ( imageFiltered, imageFiltered, erodeElement );
             dilate ( imageFiltered, imageFiltered, dilateElement );
@@ -166,11 +200,15 @@ int main( int argc, char** argv )
 
         // Contour determination
         beginContour = (float) clock() ;
-        #ifdef GPU 
-            gpu::threshold(gpuImage, gpuImage, 100, 255, THRESH_BINARY) ;
-            gpu::HoughCircles(gpuImage, gpuCircles, CV_HOUGH_GRADIENT, 2, 100, 128, 100, 0, 400, 10) ;
+        #ifdef OCLss
+            //source de lenteur ici, et les cercles ne sont pas détectés ...
+            ocl::threshold(oclImageFiltered, oclImageFiltered, 100, 255, THRESH_BINARY) ;
+            imageFiltered = oclImageFiltered;
+            HoughCircles(imageFiltered, circles, CV_HOUGH_GRADIENT, 1, 100, 128, 1000, 0, 400 ) ;
+            // n'existe pas en ocl
+            //gpu::HoughCircles(gpuImage, gpuCircles, CV_HOUGH_GRADIENT, 2, 100, 128, 100, 0, 400, 10) ;
 
-            vector<Vec3f>::const_iterator itc = gpuCircles.begin();
+            /*vector<Vec3f>::const_iterator itc = gpuCircles.begin();
 
            while (itc!=gpuCircles.end()) 
            {
@@ -181,6 +219,15 @@ int main( int argc, char** argv )
                 #endif
                  
                 ++itc;
+           }*/
+            for( size_t iCircle = 0; iCircle < circles.size(); iCircle++ )
+            {
+
+                #ifdef DISPLAY
+                    cout << "Circle found : (" << round(circles[iCircle][0]) << ", " << round(circles[iCircle][1]) << " | " << circles[iCircle][2] << ")" <<endl ;
+                #else
+                    stringOutput << "Circle found : (" << round(circles[iCircle][0]) << ", " << round(circles[iCircle][1]) << " | " << circles[iCircle][2] << ")" <<endl ;
+                #endif
            }
 
         #else
@@ -260,11 +307,14 @@ int main( int argc, char** argv )
         }
             
     }
+    size_t endTime = time(NULL);
+    
 
     #ifndef DISPLAY
         cout << stringOutput.str() ;
     #endif
 
+    cout << "Total Time : " << endTime - beginTime << "s" << endl;
     cout << "Filtering executed in " << filteringTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
     cout << "Noise cancelation executed in " << noiseTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
     cout << "Contour determination executed in " << contourTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
