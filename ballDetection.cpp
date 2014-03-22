@@ -69,9 +69,11 @@ static void onMouse( int event, int x, int y, int /*flags*/, void* channel )
 
 int main( int argc, char** argv )
 {
+    setNumThreads(4);
+
     // Benchmark variables
     struct timeval tv_begin, tv_end, beginTime, endTime;
-    double filteringTime=0 , noiseTime=0, contourTime=0, readTime=0, totalTime, finalLoop; 
+    double filteringTime=0 , noiseTime=0, contourTime=0, readTime=0, waitFinal=0, totalTime, finalLoop; 
 
     // Image processing vars
     Mat image, imageFiltered, imageTmp ;
@@ -338,13 +340,15 @@ int main( int argc, char** argv )
         else if ( (end - begin)  < best )
             best = end - begin ;*/
 
-
-
+        // GITAN !
+        /*gettimeofday(&tv_begin, NULL);
         char c = (char)waitKey(5);
         if( c == 27 )
         {
             break;
         }
+        gettimeofday(&tv_end, NULL);
+        waitFinal += (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);*/
             
     }
     
@@ -356,13 +360,13 @@ int main( int argc, char** argv )
     #ifndef DISPLAY
         //cout << stringOutput.str() ;
     #endif
-    cout << "FRAMES : " << n << endl;
+    cout << "FRAMES : " << n << "  THREADS : " << getNumThreads() << "  CPUs : " << getNumberOfCPUs() <<endl;
     cout << "Total Time : " << totalTime << "s" << endl;
     cout << " Read time : " << readTime << "s" << endl;
     cout << " Filtering time : " << filteringTime << "s" << endl;
     cout << " Noise cancellation time : " << noiseTime << "s" << endl;
     cout << " Contour determination time : " << contourTime << "s" << endl;
-    cout << " Final Loop : " << finalLoop << "s" << endl;
+    cout << " Final Loop : " << finalLoop << "s" <<  "  Supposed total : " << readTime+filteringTime+noiseTime+contourTime+finalLoop << endl;
 
     /*cout << "Filtering executed in " << filteringTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
     cout << "Noise cancelation executed in " << noiseTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
