@@ -69,8 +69,6 @@ static void onMouse( int event, int x, int y, int /*flags*/, void* channel )
 
 int main( int argc, char** argv )
 {
-    setNumThreads(4);
-
     // Benchmark variables
     struct timeval tv_begin, tv_end, beginTime, endTime;
     double filteringTime=0 , noiseTime=0, contourTime=0, readTime=0, waitFinal=0, totalTime, finalLoop; 
@@ -93,12 +91,6 @@ int main( int argc, char** argv )
     TermCriteria termcrit(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 20, 0.03);
     Size subPixWinSize(10,10), winSize(31,31);
 
-    // Display vars
-    //double begin, end, beginFiltering, endFiltering, filteringTime = 0, beginNoise, endNoise, noiseTime = 0, beginContour, endContour, contourTime = 0, calculationTime = 0, worst = 0, best = 100000000000000     ;
-    int i = 0 ;
-    stringstream stringOutput;
-
-
     // Get the video (filename or device)
     cap.open("MVI_7319.MOV");
     if( !cap.isOpened() )
@@ -106,6 +98,10 @@ int main( int argc, char** argv )
         cout << "Could not initialize capturing...\n";
         return 0;
     }
+
+    // Display vars
+    int i = 0 ;
+    stringstream stringOutput;
     int n = cap.get(CV_CAP_PROP_FRAME_COUNT);
 
     #ifdef DISPLAY
@@ -138,7 +134,7 @@ int main( int argc, char** argv )
         ocl::getOpenCLPlatforms(platforms);
         ocl::DevicesInfo devices;
         ocl::getOpenCLDevices(devices);
-        std::cout << "platforms " << platforms.size() << "  devices " << devices.size() << " " << devices[0]->deviceDriverVersion << std::endl;
+        std::cout << "platforms " << platforms.size() << "  devices " << devices.size() << " " << devices[0]->deviceName << std::endl;
         ocl::setDevice(devices[0]);
 
     #endif
@@ -147,12 +143,9 @@ int main( int argc, char** argv )
 
     for(i=0 ; i < n ; i++)
     {
-        //begin = (float) clock() ;
-
         gettimeofday(&tv_begin, NULL);
         Mat frame;
-        bool isStreamOK = cap.read(frame);gettimeofday(&tv_end, NULL);
-        //cap >> frame;
+        bool isStreamOK = cap.read(frame);
         if( !isStreamOK )
         {
             break;
@@ -163,32 +156,24 @@ int main( int argc, char** argv )
         readTime += (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);
 
         // Filtering part : conversion from one color space to another
-        //beginFiltering = (float) clock() ;
         gettimeofday(&tv_begin, NULL);
         #ifdef OCL
             ocl::oclMat oclImage(image), oclImageFilteredCvt, oclImageFiltered, oclCircles, thresholdMin, thresholdMax;
             vector<ocl::oclMat> channels;
             ocl::cvtColor(oclImage, oclImageFilteredCvt, CV_RGB2HSV);
 
+            // 4 lines above equivalent to the function inRange of non-OCL code, but inRange doesn't exist in OCL so I had to "recode" it
             ocl::split(oclImageFilteredCvt, channels);
             ocl::threshold(channels[0], thresholdMin, H_min, 255, THRESH_BINARY);
             ocl::threshold(channels[0], thresholdMax, H_max, 255, THRESH_BINARY_INV);
-            ocl::bitwise_and(thresholdMin, thresholdMax, oclImageFiltered); //imageTmp = oclImageFiltered;imshow(WINDOW_TEST, imageTmp);
-            
-            //inRange(oclImageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), oclImageFiltered);
-            //imageFiltered = oclImageFiltered;
-            //inRange seems not to work with ocl ...
-            //inRange(imageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), imageFiltered);
+            ocl::bitwise_and(thresholdMin, thresholdMax, oclImageFiltered); 
         #else
             cvtColor(image, imageFiltered, CV_RGB2HSV);
-
             // Filtering part : Application of the threshold to keep only the color of the ball
             inRange(imageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), imageFiltered);
         #endif 
-        //endFiltering = (float) clock() ;
         gettimeofday(&tv_end, NULL);
         filteringTime += (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);
-
 
         #ifdef DISPLAY
             #ifdef OCL
@@ -198,18 +183,15 @@ int main( int argc, char** argv )
             imshow(WINDOW_THRESHOLD, imageFiltered) ;  
         #endif     
 
-
         // Noise cancelation
-        //beginNoise = (float) clock() ;
         gettimeofday(&tv_begin, NULL);
         #ifdef OCL
-            //oclImageFiltered = imageFiltered;
 
             ocl::erode ( oclImageFiltered, oclImageFiltered, erodeElement );
             ocl::erode ( oclImageFiltered, oclImageFiltered, erodeElement );
             ocl::dilate ( oclImageFiltered, oclImageFiltered, dilateElement );
             ocl::dilate ( oclImageFiltered, oclImageFiltered, dilateElement );
-            // Peut être à supprimer par la suite
+            // Peut être à supprimer par la suite (si contourdetermination en OCL efficace)
             imageFiltered = oclImageFiltered;
         #else
             erode ( imageFiltered, imageFiltered, erodeElement );
@@ -217,7 +199,6 @@ int main( int argc, char** argv )
             dilate ( imageFiltered, imageFiltered, dilateElement );
             erode ( imageFiltered, imageFiltered, erodeElement );
         #endif
-        //endNoise = (float) clock() ;
         gettimeofday(&tv_end, NULL);
         noiseTime += (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);
         
@@ -226,9 +207,7 @@ int main( int argc, char** argv )
             imshow(WINDOW_THRESHOLD_NOISE, imageFiltered) ;     
         #endif  
 
-
         // Contour determination
-        //beginContour = (float) clock() ;
         gettimeofday(&tv_begin, NULL);
         #ifdef OCLss
             //source de lenteur ici
@@ -319,37 +298,12 @@ int main( int argc, char** argv )
                 } 
             #endif
         #endif
-        //endContour = (float) clock() ;
         gettimeofday(&tv_end, NULL);
         contourTime += (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);
 
-
         #ifdef DISPLAY
             imshow(WINDOW_THRESHOLD_NOISE_BLUR, imageFiltered) ; 
-        #endif 
-
-
-        /*end = (float) clock() ;
-        calculationTime += end - begin ;
-        filteringTime += endFiltering - beginFiltering ;
-        noiseTime += endNoise - beginNoise ;
-        contourTime += endContour - beginContour ;
-
-        if ( (end - begin) > worst )
-            worst = end - begin ;
-        else if ( (end - begin)  < best )
-            best = end - begin ;*/
-
-        // GITAN !
-        /*gettimeofday(&tv_begin, NULL);
-        char c = (char)waitKey(5);
-        if( c == 27 )
-        {
-            break;
-        }
-        gettimeofday(&tv_end, NULL);
-        waitFinal += (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);*/
-            
+        #endif             
     }
     
     finalLoop = (double) (tv_end.tv_sec - tv_begin.tv_sec) + ((double) (tv_end.tv_usec - tv_begin.tv_usec)/1000000);
@@ -367,11 +321,6 @@ int main( int argc, char** argv )
     cout << " Noise cancellation time : " << noiseTime << "s" << endl;
     cout << " Contour determination time : " << contourTime << "s" << endl;
     cout << " Final Loop : " << finalLoop << "s" <<  "  Supposed total : " << readTime+filteringTime+noiseTime+contourTime+finalLoop << endl;
-
-    /*cout << "Filtering executed in " << filteringTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
-    cout << "Noise cancelation executed in " << noiseTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
-    cout << "Contour determination executed in " << contourTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ")" << endl ;
-    cout << "Code executed in " << calculationTime / ((float) i) / ((float) CLOCKS_PER_SEC) << "s on average per frame (frames : " << i << ",best : " << best / ((float) CLOCKS_PER_SEC) << "s, worst : " << worst / ((float) CLOCKS_PER_SEC) << "s)" << endl ;*/
 
     return 0;
 }
