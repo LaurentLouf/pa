@@ -2,24 +2,47 @@
 
 using namespace std;
 
-void getBallPositionFromCamera(int xPixels, int yPixels, double diameterPixels, double* x, double* y, double* z)
+void getBallPositionFromCamera(int xPixels, int yPixels, double diameterPixels, BallState& ballState)
 {
+	ballState.oldx = ballState.x;
+	ballState.oldy = ballState.y;
+	ballState.oldz = ballState.z;
 	double alpha = abs(diameterPixels * CAMERA_PIX2RAD);
 	double gamma = abs(CAMERA_PIX2RAD * sqrt(xPixels*xPixels + yPixels*yPixels));
-	*z = - BALL_DIAMETER / (2*( tan(alpha/2 + gamma) - tan(gamma)));
-	*x = *z * tan(CAMERA_PIX2RAD * (xPixels - CAMERA_X_RES / 2));
-	*y = *z * tan(CAMERA_PIX2RAD * (yPixels - CAMERA_Y_RES / 2));
-	std::cout << "alpha " << alpha  << "  gamma " << gamma << std::endl;
+	ballState.z = - BALL_DIAMETER / (2*( tan(alpha/2 + gamma) - tan(gamma)));
+	ballState.x = ballState.z * tan(CAMERA_PIX2RAD * (xPixels - CAMERA_X_RES / 2));
+	ballState.y = ballState.z * tan(CAMERA_PIX2RAD * (yPixels - CAMERA_Y_RES / 2));
+	//std::cout << "alpha " << alpha  << "  gamma " << gamma << std::endl;
 	return;	
 }
 
-void getBallPosition(int xPixels, int yPixels, double diameterPixels, double* x, double* y, double* z)
+void getBallPosition(int xPixels, int yPixels, double diameterPixels, BallState& ballState)
 {
-	getBallPositionFromCamera(xPixels, yPixels, diameterPixels, x, y, z);
-	*z += CAMERA_HEIGHT ;
-	*x += CAMERA_X ;
-	*y += CAMERA_Y ;
+	getBallPositionFromCamera(xPixels, yPixels, diameterPixels, ballState);
+	ballState.z += CAMERA_HEIGHT ;
+	ballState.x += CAMERA_X ;
+	ballState.y += CAMERA_Y ;
 	return;
+}
+
+void calculateBallSpeed(BallState& ballState)
+{
+	ballState.vx = ballState.x - ballState.oldx;
+	ballState.vy = ballState.y - ballState.oldy;
+	ballState.vz = ballState.z - ballState.oldz;
+}
+
+CircleFound getBestCircle(std::vector<CircleFound> const & circlesFound)
+{
+	// basic : we get the biggest circle
+	CircleFound tmpCircle;
+	int n = circlesFound.size();
+	for(int i =0 ; i < n ; i++)
+	{
+		if(circlesFound[i].radius > tmpCircle.radius)
+			tmpCircle = circlesFound[i];
+	}
+	return tmpCircle;
 }
 
 

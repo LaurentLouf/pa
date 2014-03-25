@@ -1,0 +1,188 @@
+\part{Partie informatique, électronique}
+
+L'enjeu de cette partie est grand : il s'agit d'une part de détecter la balle, sa position ainsi que les composantes de son mouvement : vitesses de rotation et vitesses de translation. Le système devant pouvoir être utilisé pour tout type de joueurs, on peut estimer que le pire des scénarios est celui d'un jeu d'échange de grand joueur où la balle se déplace en moyenne à 100  km/h ce qui impose de fortes contraintes temporelles pour les parties acquisition et commande. D'autre part, il faut aussi commander le mur pour qu'il se trouve dans la bonne position pour renvoyer la balle où cela a été décidé par l'algorithme de jeu (non étudié ici), ce qui devra prendre en compte de la position du joueur, qu'il faudra donc déterminer.\\
+
+En supposant que la balle est tapée en fond de court et que le mur se trouve sur le fond de court opposé, le système dispose de moins d'une seconde pour faire l'acquisition et déplacer le mur en conséquence. Mais cette hypothèse est peu probable et il y a de grandes chances pour qu'on ne détecte la balle qu'au moment de son passage au-dessus du filet. De plus, le mur se trouvera sur la ligne de service ce qui ne laisse donc au système qu'environ 200ms pour capter la balle et se déplacer en fonction. \\
+
+C'est pour ces raisons qu'un certain nombre de solutions techniques ont du être envisagées aussi bien pour la partie détection de la balle, détection du joueur que déplacement du mur.
+
+\chapter{Détection de la balle}
+
+
+L'enjeu de cette partie est de détecter la position de la balle ainsi que les composantes de son mouvement : vitesses de translation ainsi que vitesses de rotation. 
+
+Si les premières sont assez faciles à trouver (il suffit de détecter la balle dans deux positions assez proches), les vitesses de rotation se révèlent plus compliquées à obtenir du fait des vitesses de rotation pouvant atteindre 75 tr/s, soit une rotation toutes les 13ms. 
+
+Si on veut détecter cette rotation, dans le cas d'une caméra, il faudrait donc pouvoir au moins acquérir deux images durant cette rotation soit une image toute les 6ms environ. Il a donc été nécessaire de faire un peu d'exploration de différentes techniques d'acquisition afin de trouver la solution la plus adaptée à notre problème.
+
+
+\section{Détection de la position et de la vitesse de translation}
+
+
+
+\subsection{Détection par laser}
+
+\subsubsection{Rideaux de lasers}
+
+Une première méthode pour détecter la position de la balle à différents instants serait d'utiliser des barrières de lasers comme on peut en trouver dans l'industrie pour limiter l'accès à des machines dangeureuses. On peut en voir notamment sur la figure \ref{img:rideaulasers}. \\
+
+On a donc besoin d'autant de ces systèmes qu'on veut de positions de la balle (pour la partie calcul et détermination de la trajectoire de la balle), ce qui peut donc vite se révéler très contraignant, tant en termes de coûts que de modularité, mais aussi de positionnement et donc de délai avant impact de la balle avec le mur. En effet, un tel type de procédé peut comporter des risques pour l'utilisateur (utilisation de lasers) et ne peut donc pas pointer vers le joueur. On pourrait donc placer ces capteurs de part et d'autre du filet, mais on limite donc de fait le temps dont on dispose pour déplacer le mur. \\
+
+De plus, il faut un espacement maximal entre deux capteurs lasers de 5cm (une balle de tennis en faisant un peu plus de 6), on a donc besoin d'un nombre de capteurs proportionnel à la hauteur maximale à laquelle on veut détecter le passage de la balle, ce qui aura donc une influence directe sur le prix. Enfin, la plupart des solutions trouvées dans l'industrie ne permettent que de détecter le franchissement (d'objets plus ou moins petits selon l'espacement entre les lasers) et non pas la position où l'objet a traversé le rideau. Il doit néanmoins être possible d'adapter ces solutions, mais cela demanderait du travail supplémentaire. 
+
+
+\subsubsection{Balayage laser}
+
+\paragraph{Balayage 2D\\}
+
+Une autre solution serait d'utiliser un capteur basé sur un balayage laser. Le principe est quasiment similaire au précédent, c'est-à-dire qu'un balayage 2D nécessiterait d'avoir autant de capteurs qu'on veut de positions de la balle. De la même manière que précédemment, la sécurité de l'utilisateur est aussi à prendre en jeu. \\
+
+On peut donc imaginer un système de capteurs suspendus au plafond, il faut donc prendre en compte la hauteur à laquelle se trouve le capteur pour pouvoir trouver la résolution angulaire minimale à avoir pour pouvoir détecter la balle. À 5m de hauteur, avec un seul capteur pour toute la largeur du terrain, on doit avoir une ouverture angulaire de 94$^{\circ}$, une portée maximale de 7.5m et quelques calculs de trigonométrie donnent une résolution angulaire de minimum 0.25$^{\circ}$. Cependant, à la vue des caractéristiques de différents capteurs de ce type, il ne semble pas que cela soit très contraignant \\ 
+
+La vitesse de la balle va aussi dans ce cas imposer de fortes contraintes sur la fréquence de réalisation des scans. La balle faisant 6cm de diamètre, la taille du faisceau étant d'environ 1cm à la distance citée précédemment, il faut donc que la balle ne parcourt pas plus de 5cm entre deux scans complets, ce qui donne donc une fréquence de balayage de 560Hz. \\
+
+L'ensemble de ces caractéristiques (portée, résolution angulaire et fréquence de scan) semble pour l'instant très dur à trouver (aucune référence chez SICK, et la meilleure référence chez Pulse-In \footnote{http://www.triple-in.de/english/products/2d-laser-scanners/pas/} ne convient pas à nos besoins). 
+
+
+\paragraph{Balayage 3D\\}
+
+Une solution pour ne pas avoir à multiplier les capteurs est d'utiliser un capteur qui fasse un balayage 3D, ce qui permet donc d'avoir plusieurs positions de la balle avec un seul capteur. Néanmoins, il semble impossible d'avoir un capteur qui puisse avoir une cadence suffisamment élevée pour réaliser ces mesures et le prix d'un tel capteur serait tout simplement beaucoup trop élevé, sachant que la meilleure référence trouvée \footnote{http://www.robotshop.com/eu/fr/capteur-3d-balayage-laser-precision.html} coûte déjà plus de 50 000\texteuro. 
+
+
+\subsection{Détection par caméra}
+
+Une solution alternative à la détection par laser est la détection par caméra. Si cette méthode pose quelques problèmes que l'on a pas avec la détection par laser, elle en résoud certain. On capte en effet une assez grande surface, on n'a donc pas besoin d'une vitesse excessivement élevée pour avoir la balle dans le champ (ce qui est par contre très problématique avec le laser). On a par contre des problèmes de flou que l'on n'avait pas avant. La détection de la balle est aussi plus problématique puisqu'il faut la distinguer du reste de l'environnement qui est visuellement très riche et bourré d'information, dont la très grande majorité est inutile dans notre cas. Bien positionnée, une caméra peut aussi servir à détecter le joueur ce qui est le sujet d'une autre partie.
+
+
+\subsubsection{Type de caméra}
+
+s
+
+\subsubsection{Caractéristiques caméra}
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Détection de la vitesse de rotation}
+
+\subsection{Caméra ultra-rapide}
+
+\subsection{Caméra normale}
+
+\subsection{Balle intelligente}
+
+\subsection{Raquette intelligente}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Conclusion}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\chapter{Détection du joueur}
+
+On s'intéresse dans cette partie à la détection du joueur, pour pouvoir décider de la position de la balle que l'on renvoie avec le mur en fonction du style de jeu qui aura été décidé par le joueur lui-même. On s'intéressera donc aussi bien à la position du joueur mais aussi à son déplacement, pour pouvoir déterminer son intention (pour pouvoir prendre le joueur à contre-pied par exemple), mais aussi l'effort fourni depuis le début de l'entraînement (nombre de calories brûlées, distance parcourue et autres statistiques du genre). \\
+
+Cette partie est bien moins complexe que la précédente étant donné les vitesses de déplacement bien moindre, des contraintes temporelles moins fortes et aussi une précision requise bien inférieure.
+
+
+\section{Balayage laser}
+
+\section{Caméra}
+
+
+
+
+
+
+
+
+
+
+\chapter{Déplacement du mur}
+
+
+
+
+\subsubsection{Utilisation d'une caméra ultra-rapide}
+
+La première approche pour la détection de la balle est donc d'utiliser une caméra ultra-rapide qui puisse acquérir plus de 200 images par seconde. De telles caméras existent bien mais son relativement onéreuses : de 10 à 15 000 euros. Néanmoins, elles présentent des caractéristiques intéressantes (on présente ici les caractéristiques de la caméra M3 de idtVision).
+
+\paragraph{Temps d'exposition réglable jusqu'à 1 micro-seconde\\}
+
+On peut donc régler la temps d'exposition jusqu'à des valeurs qui permettent de supprimer tout flou sur notre balle. Le flou n'existe pas si la balle ne parcourt pas plus d'un pixel durant le temps d'exposition. Avec 1 micro-seconde, la balle a le temps de parcourir 0.028mm ce qui est de loin inférieur à ce que représente un pixel à une distance raisonable. Le problème qui apparait alors est la luminosité, puisque pour avoir une image exploitable, il est nécessaire que suffisament de lumière soit parvenue jusqu'au capteur durant le temps d'exposition, paramètre qui dépend bien sûr directement du temps d'exposition mais aussi de la sensibilité (mesurée en ISO) et de l'ouverture de l'objectif (sans unité). C'est là qu'interviennent deux autres caractéristiques de cette caméra. 
+
+\paragraph{Sensibilité et monture C\\}
+
+La sensibilité de cette caméra est de 1000 ISO en mode couleur et 3000 ISO en mode couleur, ce qui est assez élevé. La sensibilité représente la sensibilité du capteur à la lumière : ainsi, à quantité de lumière égale, une image prise à sensibilité 1000 ISO sera bien moins lumineuse qu'une image prise avec une sensibilité de 2000 ISO. 
+
+Mais la luminosité dépend aussi d'un dernier paramètre qui est l'ouverture de l'objectif et c'est pour cela que la monture C de la caméra est importante. Les objectifs ayant une monture C (type d'attache entre la caméra et l'objectif) ont généralement des ouvertures très grandes ce qui permet donc d'avoir une très grande luminosité. \\
+
+
+Une condition nécessaire pour l'utilisation de la caméra est de pouvoir l'utiliser en direct et donc de disposer d'un lien entre la caméra et la solution de calcul. La caméra citée précédemment convient donc tout à fait puisqu'elle dispose d'un lien Caméra Link, mais un lien Gigabit Ethernet aurait aussi pu faire l'affaire.
+
+\paragraph{Limitations\\}
+
+La principale limitation de l'utilisation de telles caméras (il existe de nombreuses caméras aux caractéristiques similaires à celles de la caméra M3 présentée précédemment) est la capacité à traiter les images en temps-réel. Un algorithme simple mais efficace pour la détection d'une balle est d'isoler la couleur de la balle (en utilisant le système de représentation des couleurs HSV plutôt que RGB), éliminer le bruit grâce à un processus de dilation et érosion et enfin de trouver les cercles de diamètre minimaux entourant les éléments restant. La trajectoire de la balle étant continue, on peut donc déterminer quel élément représente la balle et quels éléments représentent du bruit qui aurait résisté à l'étape d'élimination du bruit. Le temps d'éxécution est donc dépendant de la résolution des images obtenues, résolution qui doit cependant être suffisament élevée pour pouvoir détecter les rainures de la balle. 
+
+
+\paragraph{Positionnement des caméras\\}
+
+Caméra au plafond pas cool toussa, plutot sur bords du terrain du coup. Petits calculs pour montrer le truc et schéma si possible
+
+
+\paragraph{Résultats\\}
+
+Nous avons effectué quelques tests de détection de la balle, en faisant varier aussi bien la distance de la balle à la caméra, les conditions d'éclairages et les résolutions d'images, résultats suivants (temps d'éxécution)
+
+
+\paragraph{Amélioration de la technique de détection\\}
+
+L'étape de filtrage de l'image afin de ne garder que les éléments ayant la même couleur que la balle peut se simplifier grandement avec utilisation d'un peu de matériel peu onéreux et quelques propriétés optiques. Si les images captées par la caméra sont difficilement exploitables en l'état, c'est notamment car elles contiennent beaucoup trop d'informations, dont la plupart ne servent à rien dans notre cas. Une technique permettant d'obtenir des images beaucoup plus simples à exploiter serait donc de réaliser un filtrage avant le capteur, afin de ne garder que ce qui est intéressant sur l'image. \\
+
+On pourrait alors utiliser un filtre ne laissant passer que la couleur de la balle de tennis mais cette solution est bien trop imprécise pour être utilisée (dépend fortement des conditions d'éclairage). L'idéal serait donc de pouvoir éclairer la balle d'une couleur bien précise et de filtrer cette couleur, mais cette solution risque fortement de pertuber le joueur. \\
+
+On peut donc alors s'intéresser à la partie du spectre non visible, soit les infrarouges ou les ultra-violets. En effet les éléments reflètent bien moins dans ces parties du spectre que dans le spectre du visible, ce qui permet alors, dans le cas où on arrive à bien faire réfléchir notre élément d'intérêt (la balle) dans ces parties du spectre, d'isoler cet élément. Pour réaliser cela, on peut simplement enduire la balle de peinture qui reflète l'infrarouge, on aura alors un seul élément bien visible dans cette partie du spectre, s'il est suffisament éclairé. On peut pour palier à ça utiliser des lampes infrarouges qui éclaireront le terrain, sans gêner le joueur. Il ne suffit plus alors que d'utiliser un filtre ne laissant pas passer le spectre visible mais uniquement les infrarouges, ce qui se trouve assez facilement et est relativement peu couteux.
+
+
+\subsubsection{Utilisation de caméra plus lente}
+
+Marqueurs sur la balle, temps d'expo volontairement long .... 
+

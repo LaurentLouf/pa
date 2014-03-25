@@ -15,8 +15,10 @@
 
 using namespace cv;
 using namespace std;
+//#define DEBUG
 
 #include "imageProcessing.h"
+#include "postDetection.h"
 
 int HUE_CHANNEL = 0 ;
 int SATURATION_CHANNEL = 2 ; 
@@ -123,14 +125,21 @@ int main( int argc, char** argv )
 
     #endif
     gettimeofday(&bench.beginTime, NULL);
-
+    BallState ballState;
     for(i=0 ; i < n ; i++)
     {
         std::vector<CircleFound> circles;
+        CircleFound ballCircle;
         findBall(cap, bench, circles);
+        ballCircle = getBestCircle(circles);
+        getBallPosition(ballCircle.x, ballCircle.y, ballCircle.radius*2, ballState);
+        calculateBallSpeed(ballState);
 
+        #ifdef DEBUG
+            cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
+        #endif
         #ifdef DISPLAY
-            char c = (char)waitKey(1);
+            char c = (char)waitKey(200);
             if( c == 27 )
             {
                 break;

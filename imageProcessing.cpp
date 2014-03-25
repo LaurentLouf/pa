@@ -11,6 +11,7 @@ int findBall(VideoCapture& cap, Benchmark& bench, std::vector<CircleFound>& circ
     vector<vector<Point> >::iterator iteratorContours ;
     Mat erodeElement  = getStructuringElement( MORPH_RECT, Size ( 5, 5) );
     Mat dilateElement = getStructuringElement( MORPH_RECT, Size ( 5, 5) );
+    circlesFound.clear();
 
   	// Circle vars
     Point2f center ;
@@ -109,13 +110,17 @@ int findBall(VideoCapture& cap, Benchmark& bench, std::vector<CircleFound>& circ
             for ( iteratorContours = contours.begin() ; iteratorContours != contours.end() ; iteratorContours++)
             {   
                 minEnclosingCircle ( *iteratorContours, center, radius ) ;
-
+                CircleFound tmpCircle;
+                tmpCircle.x = round(center.x);
+                tmpCircle.y = round(center.y);
+                tmpCircle.radius = radius;
+                circlesFound.push_back(tmpCircle);
                 #ifdef DISPLAY
                     cout << "Circle found : (" << round(center.x) << ", " << round(center.y) << " | " << radius << ")" <<endl ;
                     Point centerCircle(cvRound(center.x), cvRound(center.y)) ;
                     circle( imageFiltered, centerCircle, cvRound(radius), Scalar(255,255,255), 2, 8, 0 );
                 #else
-                    stringOutput << "Circle found : (" << round(center.x) << ", " << round(center.y) << " | " << radius << ")" <<endl ;
+                    //stringOutput << "Circle found : (" << round(center.x) << ", " << round(center.y) << " | " << radius << ")" <<endl ;
                 #endif
             } 
 
@@ -129,11 +134,15 @@ int findBall(VideoCapture& cap, Benchmark& bench, std::vector<CircleFound>& circ
 
             for( size_t iCircle = 0; iCircle < circles.size(); iCircle++ )
             {
-
+            	CircleFound tmpCircle;
+                tmpCircle.x = round(circles[iCircle][0]);
+                tmpCircle.y = round(circles[iCircle][1]);
+                tmpCircle.radius = circles[iCircle][2];
+                circlesFound.push_back(tmpCircle);
                 #ifdef DISPLAY
                     cout << "Circle found : (" << round(circles[iCircle][0]) << ", " << round(circles[iCircle][1]) << " | " << circles[iCircle][2] << ")" <<endl ;
                 #else
-                    stringOutput << "Circle found : (" << round(circles[iCircle][0]) << ", " << round(circles[iCircle][1]) << " | " << circles[iCircle][2] << ")" <<endl ;
+                    //stringOutput << "Circle found : (" << round(circles[iCircle][0]) << ", " << round(circles[iCircle][1]) << " | " << circles[iCircle][2] << ")" <<endl ;
                 #endif
            }
         #else   
@@ -159,13 +168,17 @@ int findBall(VideoCapture& cap, Benchmark& bench, std::vector<CircleFound>& circ
             for ( iteratorContours = contours.begin() ; iteratorContours != contours.end() ; iteratorContours++)
             {   
                 minEnclosingCircle ( *iteratorContours, center, radius ) ;
-
+                CircleFound tmpCircle;
+                tmpCircle.x = round(center.x);
+                tmpCircle.y = round(center.y);
+                tmpCircle.radius = radius;
+                circlesFound.push_back(tmpCircle);
                 #ifdef DISPLAY
                     cout << "Circle found : (" << round(center.x) << ", " << round(center.y) << " | " << radius << ")" <<endl ;
                     Point centerCircle(cvRound(center.x), cvRound(center.y)) ;
                     circle( imageFiltered, centerCircle, cvRound(radius), Scalar(255,255,255), 2, 8, 0 );
                 #else
-                    stringOutput << "Circle found : (" << round(center.x) << ", " << round(center.y) << " | " << radius << ")" <<endl ;
+                    //stringOutput << "Circle found : (" << round(center.x) << ", " << round(center.y) << " | " << radius << ")" <<endl ;
                 #endif
             } 
         #endif
