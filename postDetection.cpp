@@ -42,6 +42,8 @@ CircleFound getBestCircle(std::vector<CircleFound> const & circlesFound)
 		if(circlesFound[i].radius > tmpCircle.radius)
 			tmpCircle = circlesFound[i];
 	}
+	if(n == 0)
+		tmpCircle.radius = 0;
 	return tmpCircle;
 }
 

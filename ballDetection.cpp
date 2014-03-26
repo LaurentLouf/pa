@@ -5,6 +5,8 @@
 #include "opencv2/ocl/ocl.hpp"
 #include "opencv2/nonfree/ocl.hpp"
 
+#include <pthread.h>
+
 #include <iostream>
 #include <ctype.h>
 #include <ctime>
@@ -16,6 +18,9 @@
 using namespace cv;
 using namespace std;
 //#define DEBUG
+
+//#define MAX_TREATED_LOOP 3
+//#define MAX_UNTREATED_LOOP 20
 
 #include "imageProcessing.h"
 #include "postDetection.h"
@@ -124,27 +129,51 @@ int main( int argc, char** argv )
         ocl::setDevice(devices[0]);
 
     #endif
+
+    // déclaration des threads
+    pthread_t threadMaths, threadWall;
+    
+    //pthread_create(&threadWall, NULL, mathsRoutine, arg)
+
     gettimeofday(&bench.beginTime, NULL);
-    BallState ballState;
+    BallState ballState_t1 ballState_t2;
+    int numberOfTreatedLoop = 0, numberOfNonTreatedLoop = 0, noTreatment = 0;
     for(i=0 ; i < n ; i++)
     {
-        std::vector<CircleFound> circles;
-        CircleFound ballCircle;
-        findBall(cap, bench, circles);
-        ballCircle = getBestCircle(circles);
-        getBallPosition(ballCircle.x, ballCircle.y, ballCircle.radius*2, ballState);
-        calculateBallSpeed(ballState);
-
-        #ifdef DEBUG
-            cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
-        #endif
-        #ifdef DISPLAY
-            char c = (char)waitKey(200);
-            if( c == 27 )
-            {
+        if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue
+        {
+            numberOfTreatedLoop++;
+            numberOfNonTreatedLoop = 0;
+            ballState_t1 = ballState_t2;
+            std::vector<CircleFound> circles;
+            CircleFound ballCircle;
+            findBall(cap, bench, circles);
+            ballCircle = getBestCircle(circles);
+            if(ballCircle.radius == 0) // means no circle
                 break;
+            getBallPosition(ballCircle.x, ballCircle.y, ballCircle.radius*2, ballState_t2);
+            calculateBallSpeed(ballState_t2);
+            if(ballState.vy < 0) // si la balle revient en arrière, on arrete le traitement un instant
+            {
+                noTreatment = 3;
             }
-        #endif         
+
+            // Send info to maths
+            //pthread_create(&threadMaths, NULL, mathsRoutine, arg)
+
+            #ifdef DEBUG
+                cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
+            #endif
+            #ifdef DISPLAY
+                char c = (char)waitKey(200);
+                if( c == 27 )
+                {
+                    break;
+                }
+            #endif
+        }
+
+        noTreatment--;      
     }
     
     bench.finalLoop = (double) (bench.tv_end.tv_sec - bench.tv_begin.tv_sec) + ((double) (bench.tv_end.tv_usec - bench.tv_begin.tv_usec)/1000000);

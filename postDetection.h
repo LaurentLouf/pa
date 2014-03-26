@@ -25,6 +25,7 @@ void getBallPositionFromCamera(int xPixels, int yPixels, double diameterPixels, 
 void getBallPosition(int xPixels, int yPixels, double diameterPixels, BallState& ballState);
 void calculateBallSpeed(BallState& ballState);
 CircleFound getBestCircle(std::vector<CircleFound> const & circlesFound);
+//void setWallPosition( structure à def);
 
 
 
