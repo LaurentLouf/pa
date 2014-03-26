@@ -54,9 +54,15 @@ L'ensemble de ces caractéristiques (portée, résolution angulaire et fréquenc
 
 \paragraph{Balayage 3D\\}
 
-Une solution pour ne pas avoir à multiplier les capteurs est d'utiliser un capteur qui fasse un balayage 3D, ce qui permet donc d'avoir plusieurs positions de la balle avec un seul capteur. Néanmoins, il semble impossible d'avoir un capteur qui puisse avoir une cadence suffisamment élevée pour réaliser ces mesures et le prix d'un tel capteur serait tout simplement beaucoup trop élevé, sachant que la meilleure référence trouvée\footnote{http://www.robotshop.com/eu/fr/capteur-3d-balayage-laser-precision.html} coûte déjà plus de 50 000\texteuro. 
+Une solution pour ne pas avoir à multiplier les capteurs est d'utiliser un capteur qui fasse un balayage 3D, ce qui permet donc d'avoir plusieurs positions de la balle avec un seul capteur. Néanmoins, il semble impossible d'avoir un capteur qui puisse avoir une cadence suffisamment élevée pour réaliser ces mesures et le prix d'un tel capteur serait tout simplement beaucoup trop élevé, sachant que la meilleure référence trouvée\footnote{http://www.robotshop.com/eu/fr/capteur-3d-balayage-laser-precision.html} coûte déjà plus de 50 000\texteuro. Malheureusement, même à ce prix, la vitesse de scan est bien trop faible pour pouvoir être utilisée dans le cadre de notre application. 	
 
 \subsubsection{Algorithmie}
+
+La partie algorithmie d'une telle méthode de détection est très simple : le capteur fournit les distances des objets détectés à tous les angles (ou toutes les positions) parcourues par le système. Après avoir réalisé une mesure avec le terrain vide, on note les valeurs obtenues quand il n'y a aucune balle présente, on peut donc ensuite comparer à ces valeurs de référence les nouvelles valeurs et en déduire à quel angle et à quelle distance on a détecté quelque chose. \\ 
+
+Il faut déterminer si le quelque chose est bien la balle et non le joueur (dans le cas où on fait un balayage, sinon on place les rideaux lasers de part et d'autre du filet et il semble évident que le joueur ne va pas jouer au filet contre un mur). Pour ce faire, il suffit de regarder s'il existe plusieurs angles pour lesquels on a détecté quelque chose. Avec une résolution angulaire choisie de manière intélligente, on est sûr que la balle ne puisse pas traverser plus d'un ou deux rayons. On peut donc être sûr dans les autres cas que c'est le joueur qui est détecté.\\ 
+
+Cette solution est donc une solution assez coûteuse et la technologie d'ajourd'hui ne semble pas pouvoir remplir nos besoins en termes de vitesse de détection, de portée et de résolution à la fois. Il s'agit finalement que d'une tâche assez simple et il doit donc exister d'autres solutions qui puissent répondre à nos besoin pour un coût bien moindre. 
 
 
 \subsection{Détection par caméra}
@@ -101,17 +107,18 @@ Finalement après moult recherches nous avions trouvé la caméra M3 de IDT qui 
 
 Mais le véritable problème de cette solution était la vitesse à laquelle il fallait traiter les images (2ms à 500fps). Nous n'avons pas réalisé d'algorithme pour cette détection de vitesse de rotation, mais il serait à mon goût plus coûteux que la detection des coordonnées x,y,z ; et déjà ce dernier nous prenait 70-75ms pour une image au début, ce qui nous a mis un gros coup de doute sur la réalisation de notre idée. Ensuite en essayant sur un ordinateur de bureau récent et puissant nous avons constaté que nous gagnions à peine 5ms par image, mais que OpenCV n'utilisait pas toutes les ressources CPU, uniquement la moitié de la puissance sur place (les 4 coeurs tournaient à 50\% d'après le moniteur système). Nous sommes donc décidés à faire passer les calculs par la carte graphique de cet ordinateur de bureau à travers le module OpenCL de OpenCV (c'est une carte AMD, le module gpu est donc incompatible car écrit en CUDA), ce qui ne fût pas sans difficultés, notamment au niveau des pilotes sous linux. Finalement après quelques jours de configuration le programme s'est mis à tourner sur GPU, et là les gains nous émerveillèrent ! Après application d'une ou 2 fonctions sur gpu le temps passa déjà vers les 50ms. Puis les optimisations diverses ainsi que le portage d'un maximum de fonctions sur GPU nous ont amené à un temps de calcul de 11.5ms par image, en prenant en compte que 3.2ms est due à l'acquisition de l'image à partir du fichier vidéo, à voir si ce temps sera beaucoup plus court avec un système de stream. Malgré notre bohneur face à cette explosion de performance, le taux de traitement ne plafonne qu'à 85Hz (en FullHD), autant vous dire qu'on est encore très loin des 500Hz avec un algorithme sûrement plus complexe. Voilà pourquoi nous avons définitivement l'idée d'une caméra ultra-rapide sur ce projet.
 
-<<<<<<< HEAD
+
 \subsubsection{Algorithmie}
 
 % PARLER DES CAMERA INFRAROUGE
-=======
+
 Malgré tout nous avions imaginé utiliser une imagerie infrarouge pour obtenir directement une image en niveau de gris, où certaines parties de la balle réfléchirait les infrarouges. Ainsi les traitement associés à cette image seraient largement réduit, au niveau du filtrage et de la suppression du bruit. Pour celà nous avions imaginé avoir un éclairage infrarouge qui illumine le demi-court de tennis ou est le joueur, et que la balle possède des parties réfléchissante qui ressortiront très clairement sur les images. Pour celà nous avions pensé à coller des bandes réfléchissante sur la balle. Cependant cette solution apparait comme plus que limité car on modifie la surface de rebond de la balle donc sa réaction au sol, et la bande risque de se décoller à tout moment en raison des chocs qui sont appliqués sur cette zone. Nous avions donc imaginé ensuite d'appliquer quelque chose qui réfléchissent les infrarouge et qui adhère fortement à la balle. La zone qui nous paraissait encore la plus propice était la bande blanche parcourant la balle de tennis, car un peu creusée et qu'elle rentre moins en contact lors des rebonds. Et une peinture réfléchissante nous apparut comme une bonne solution car elle peut être appliquée finement sur un contour non droit et adhère relativement bien. De plus les peintures d'isolement utilisées dans le bâtiment sont des des peintures réfléchissantes d'infrarouges.\\
+
 Le problème a encore eu lieu au niveau des caméras : au début nous avons regardé le choix en caméra à infrarouges à haute vitesse. Et le choix était assez limité, en général avec des résolution dérisoires proches du VGA, ce qui était trop peu pour notre traitement. Puis nous nous sommes dit qu'il suffirait de prendre une caméra haute vitesse classique et d'appliquer un filtre infrarouge physique devant son objectif (moins de 100€ pour un bon filtre) et donc que cette caméra ne capterait qu'un peu de rouge au niveau des pixels excités par le rayonnement infrarouge. Le problème est que nombre de caméra ont un niveau de sensibilité réduit au domaine du visible voir à un niveau légèrement plus restreint comme on peut le voir sur le graphe du spectre de réponse de la M3. Les infrarouges qui passerait le filtre n'exciterait donc pas les capteur de la caméra et on obtiendrait alors un image tout simplement noire.\\
+
 Il est à noter qu'un éclairage infrarouge aurait put aussi constituer une gêne pour le joueur, car ce rayonnement l'aurait chauffé comme le fait un radiateur, et que pendant un effort intense, cela peut être très inconfortable.
 
 % INSERER GRAPHE REPONSE SPECTRALE M3
->>>>>>> 04c3452d07b06432f725e7ef9f32c17629266aab
 
 \subsection{Caméra normale}
 
@@ -121,12 +128,10 @@ Ce n'est pas parce que nous avons abandonné l'idée d'une caméra ultra-rapide 
 
 En connaissant la vitesse de la balle et la vitesse de la caméra, on peut en déduire la vitesse de rotation de la balle grâce aux nombre de trainées et à leur longueur. Seulement on a imaginé ici le cas avec une seule composante. En imaginant que la rotation ait aussi une composante selon l'axe de la largueur de la feuille on imagine que les trainées ressembleront à des virgules et que le calcul des vitesses de rotations se complexifie largement. Ajoutons maintenant 2 composantes à notre vitesse de translation, et une troisième composante à la rotation, ce qui représente la réalité. Eh bien on se retrouve avec quelque chose d'indigeste et nous n'avons rien put conclure de ces trainé en multidimensionnel ... Nous avons imaginé mettre des marqueurs parfois exotiques pour avoir des trainées distinctes selon les axes en jeu, mais rien de concluant n'est ressorti de cette étude, et nous avons donc définitivement abandonné l'idée de capter cette information de rotation directement par une(des) caméra(s).
 
-<<<<<<< HEAD
 \subsubsection{Algorithmie}
-=======
+
 Nous avions aussi imaginé la solution infrarouge avec une caméra normale pour obtenir notre trainée, mais les problèmes intrinsèques à ces trainées restaient toujours présent et nous n'avons donc pas put conclure sur quelque chose de satisfaisant.
 
->>>>>>> 04c3452d07b06432f725e7ef9f32c17629266aab
 
 \subsection{Balle intelligente}
 
@@ -135,14 +140,12 @@ Par ailleurs avec un tel système dans la balle on peut imaginer que son équili
 
 \subsubsection{Algorithmie}
 
-<<<<<<< HEAD
 \subsection{Raquette intelligente}
-=======
+
 Par hasard en cherchant des solutions sur internet, nous sommes tombés sur un produit intéressant sur le site de Babolat, un fournisseur de matériel de tennis. C'était leur raquette Play and Connect. Cette raquette est bardée de capteur et d'un micro ordinateur dans son manche. Ainsi elle est capable d'analyser nombre d'information sur chaque coup joué par le joueur comme le montre cette page web : https://www.babolatplay.com/features \\
 De plus la raquette est équipée d'un module bluetooth qui permet de diffuser ces informations en temps réel, initialement prévu pour envoyer ces données à un smartphone possédant l'application dédiée, mais il est concevable de détourner cette fonction pour récupérer ces données sur le PC du mur. Au niveau des contraintes, comme on peut s'y attendre, le prix de la raquette est deux fois plus élevé qu'une raquette de même qualité sans électronique embarqué et devrait avoisiner les 500€. Une autre contrainte est celle de l'autonomie de la raquette, celle ci étant de 6h selon le constructeur, elle apparait comme très correct pour un entrainement de tennis, même de longue durée.\\
 Cependant le système actuel ne serait pas capable de fournir la vitesse de rotation de la balle. Mais il serait peut-être possible de l'obtenir mathématiquement grâce aux informations de puissance, de spin, etc mais nous n'avons pas eu le temps d'étudier ce modèle. Il est à noter qu'une prochaine version de cette Babolat Play and Connect pourrait fournir ces informations et donc être une solution de choix pour ce mur de tennis intelligent.
 
->>>>>>> 04c3452d07b06432f725e7ef9f32c17629266aab
 
 \subsubsection{Algorithmie}
 
