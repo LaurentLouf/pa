@@ -26,6 +26,14 @@ Si on veut détecter cette rotation, dans le cas d'une caméra, il faudrait donc
 
 Une première méthode pour détecter la position de la balle à différents instants serait d'utiliser des barrières de lasers comme on peut en trouver dans l'industrie pour limiter l'accès à des machines dangeureuses. On peut en voir notamment sur la figure \ref{img:rideaulasers}. \\
 
+\begin{figure}[H]
+\begin{center}
+\includegraphics{rideaulaser.png}
+\caption{Rideau laser}
+\label{img:rideaulasers}
+\end{center}
+\end{figure}
+
 On a donc besoin d'autant de ces systèmes qu'on veut de positions de la balle (pour la partie calcul et détermination de la trajectoire de la balle), ce qui peut donc vite se révéler très contraignant, tant en termes de coûts que de modularité, mais aussi de positionnement et donc de délai avant impact de la balle avec le mur. En effet, un tel type de procédé peut comporter des risques pour l'utilisateur (utilisation de lasers) et ne peut donc pas pointer vers le joueur. On pourrait donc placer ces capteurs de part et d'autre du filet, mais on limite donc de fait le temps dont on dispose pour déplacer le mur. \\
 
 De plus, il faut un espacement maximal entre deux capteurs lasers de 5cm (une balle de tennis en faisant un peu plus de 6), on a donc besoin d'un nombre de capteurs proportionnel à la hauteur maximale à laquelle on veut détecter le passage de la balle, ce qui aura donc une influence directe sur le prix. Enfin, la plupart des solutions trouvées dans l'industrie ne permettent que de détecter le franchissement (d'objets plus ou moins petits selon l'espacement entre les lasers) et non pas la position où l'objet a traversé le rideau. Il doit néanmoins être possible d'adapter ces solutions, mais cela demanderait du travail supplémentaire. 
@@ -48,6 +56,8 @@ L'ensemble de ces caractéristiques (portée, résolution angulaire et fréquenc
 
 Une solution pour ne pas avoir à multiplier les capteurs est d'utiliser un capteur qui fasse un balayage 3D, ce qui permet donc d'avoir plusieurs positions de la balle avec un seul capteur. Néanmoins, il semble impossible d'avoir un capteur qui puisse avoir une cadence suffisamment élevée pour réaliser ces mesures et le prix d'un tel capteur serait tout simplement beaucoup trop élevé, sachant que la meilleure référence trouvée\footnote{http://www.robotshop.com/eu/fr/capteur-3d-balayage-laser-precision.html} coûte déjà plus de 50 000\texteuro. 
 
+\subsubsection{Algorithmie}
+
 
 \subsection{Détection par caméra}
 
@@ -56,13 +66,13 @@ Une solution alternative à la détection par laser est la détection par camér
 
 \subsubsection{Type de caméra}
 
-s
+
 
 \subsubsection{Caractéristiques caméra}
 
 
 
-
+\subsubsection{Algorithmie}
 
 
 
@@ -91,6 +101,8 @@ Finalement après moult recherches nous avions trouvé la caméra M3 de IDT qui 
 
 Mais le véritable problème de cette solution était la vitesse à laquelle il fallait traiter les images (2ms à 500fps). Nous n'avons pas réalisé d'algorithme pour cette détection de vitesse de rotation, mais il serait à mon goût plus coûteux que la detection des coordonnées x,y,z ; et déjà ce dernier nous prenait 70-75ms pour une image au début, ce qui nous a mis un gros coup de doute sur la réalisation de notre idée. Ensuite en essayant sur un ordinateur de bureau récent et puissant nous avons constaté que nous gagnions à peine 5ms par image, mais que OpenCV n'utilisait pas toutes les ressources CPU, uniquement la moitié de la puissance sur place (les 4 coeurs tournaient à 50\% d'après le moniteur système). Nous sommes donc décidés à faire passer les calculs par la carte graphique de cet ordinateur de bureau à travers le module OpenCL de OpenCV (c'est une carte AMD, le module gpu est donc incompatible car écrit en CUDA), ce qui ne fût pas sans difficultés, notamment au niveau des pilotes sous linux. Finalement après quelques jours de configuration le programme s'est mis à tourner sur GPU, et là les gains nous émerveillèrent ! Après application d'une ou 2 fonctions sur gpu le temps passa déjà vers les 50ms. Puis les optimisations diverses ainsi que le portage d'un maximum de fonctions sur GPU nous ont amené à un temps de calcul de 11.5ms par image, en prenant en compte que 3.2ms est due à l'acquisition de l'image à partir du fichier vidéo, à voir si ce temps sera beaucoup plus court avec un système de stream. Malgré notre bohneur face à cette explosion de performance, le taux de traitement ne plafonne qu'à 85Hz (en FullHD), autant vous dire qu'on est encore très loin des 500Hz avec un algorithme sûrement plus complexe. Voilà pourquoi nous avons définitivement l'idée d'une caméra ultra-rapide sur ce projet.
 
+\subsubsection{Algorithmie}
+
 % PARLER DES CAMERA INFRAROUGE
 
 \subsection{Caméra normale}
@@ -101,6 +113,7 @@ Ce n'est pas parce que nous avons abandonné l'idée d'une caméra ultra-rapide 
 
 En connaissant la vitesse de la balle et la vitesse de la caméra, on peut en déduire la vitesse de rotation de la balle grâce aux nombre de trainées et à leur longueur. Seulement on a imaginé ici le cas avec une seule composante. En imaginant que la rotation ait aussi une composante selon l'axe de la largueur de la feuille on imagine que les trainées ressembleront à des virgules et que le calcul des vitesses de rotations se complexifie largement. Ajoutons maintenant 2 composantes à notre vitesse de translation, et une troisième composante à la rotation, ce qui représente la réalité. Eh bien on se retrouve avec quelque chose d'indigeste et nous n'avons rien put conclure de ces trainé en multidimensionnel ... Nous avons imaginé mettre des marqueurs parfois exotiques pour avoir des trainées distinctes selon les axes en jeu, mais rien de concluant n'est ressorti de cette étude, et nous avons donc définitivement abandonné l'idée de capter cette information de rotation directement par une(des) caméra(s).
 
+\subsubsection{Algorithmie}
 
 \subsection{Balle intelligente}
 
@@ -108,9 +121,11 @@ Maintenant que notre option caméra était bel et bien enterrée, il nous fallai
 
 Par ailleurs avec un tel système dans la balle on peut imaginer que son équilibrage peut être altéré de façon plus ou moins importante selon le poids du module embarqué, et que ce déséquilibrage peut entrainer une gène pour le joueur de tennis ainsi qu'une modification du comportement de la balle qui a été étudié dans la partie mathématiques. Enfin il faut trouver un système relativement résistant, pour subir des forces centrifuges extrèmes ainsi que des accélérations hors du commun (au delà de 100g).
 
+\subsubsection{Algorithmie}
+
 \subsection{Raquette intelligente}
 
-
+\subsubsection{Algorithmie}
 
 
 
