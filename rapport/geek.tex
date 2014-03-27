@@ -28,7 +28,7 @@ Une première méthode pour détecter la position de la balle à différents ins
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics{rideaulaser.png}
+\includegraphics[width=\textwidth]{rideaulaser.png}
 \caption{Rideau laser}
 \label{img_rideaulasers}
 \end{center}
@@ -92,15 +92,32 @@ Nous avons donc développé notre algorithme de detection et de calcul de la pos
 
 Puis on obtient une image avec la balle de tennis qui apparait en blanc sur une image noire, mais le tout avec beaucoup de bruit comme on peut le voir ci dessous. Pour supprimer ce bruit nous avons utilisé des fonctions de morphologie mathématique : érosion et dilatation. L'application d'une dilatation sur une érosion de même élement structurant constitue une ouverture morphologique qui a tendance à eliminer les petits éléments isolés. Ainsi les petits blocs de pixels correspondants au bruits sont éliminés tandis que la balle de tennis qui est un bloc de pixel plus grand que l'élément structurant reste en place. Lors de nos tests nous avions beaucoup de bruit à cause notemment de reflets de la balle sur des surfaces brillantes et de nombreuses couleur claires dont la teinte était proches de celle de la balle, nous avons donc opté pour un élément structurant assez gros : un carré de 10 pixels de coté. Il faut donc que la balle soit représenté par plus de 10 pixels pour ne pas être supprimée, ou diminuer la taille de l'élément structurant en supprimant les sources de bruit sur le terrain : pas de vert sur le sol, car proche du jaune en teinte ; pas d'éléments réfléchissant, pas d'éléments jaunes, etc. On comprend aussi l'intéret d'avoir une résolution confortable sur la caméra (FullHd minimum ce qui correspond au minimum a 6 pixels pour la balle au sol, 2500x2000 pixels étant parfait : 12 pixels au sol). Il est à noter qu'il est impossible d'effectuer une érosion ou une dilatation avec un élément structurant plus grand qu'un carré de coté 7. Nous avons donc appliqué deux érosions puis deux dilatations succesives avec un carré de coté 5 comme élément structurant car la composé de 2 érosion/dilatation est une érosion/dilatation avec un élément structurant égal à au premier dilaté par le deuxième.\\
 
-% INSERER IMAGE AVANT SUPPRESSION DU BRUIT
+
+\begin{figure}%
+\centering
+\subfigure[Image originale]{\includegraphics[width=0.45\textwidth]{photo_traitement1.png}}
+\subfigure[Image après filtrage couleur]{\includegraphics[width=0.45\textwidth]{photo_traitement2.png}}\\
+\subfigure[Image après filtrage du bruit]{\includegraphics[width=0.45\textwidth]{photo_traitement3.png}}
+\subfigure[Cercle détecté à la fin]{\includegraphics[width=0.45\textwidth]{photo_traitement4.png} \label{3figs-c}}%
+\caption{Différentes étapes de la détection de la balle}
+\label{3figs}
+\end{figure}
 
 % THRESHOLD INUTILE AU DEBUT DE CONTOUR ?
 
 Ensuite on applique la fonction findContours de opencv, qui permet de trouver les pixels blanc qui forment des blocs et de déterminer les contours de ces blocs. Ensuite il faut déterminer le plus petit cercle englobant ces blocs afin d'obtenir une position en coordonnées de pixel, et un rayon. Pour cela on applique la fonction minEnclosingCircle de la library OpenCV qui nous permet d'avoir le cercle correspondant pour chaque contour. On peut donc récupérer les coordonnées du centre du cercle et son rayon.\\
 
-Ensuite grâce à ces informations on peut détecter la position de la balle dans l'espace. Tout d'abord en supposant la caméra en hauteur qui regarde vers le bas, on va chercher à déterminer la profondeur de la balle (axe z, cf schéma ci dessous). Remarque : les angles ne sont pas orientés.\\
+Ensuite grâce à ces informations on peut détecter la position de la balle dans l'espace. Tout d'abord en supposant la caméra en hauteur qui regarde vers le bas, on va chercher à déterminer la profondeur de la balle (axe z, cf figure \ref{img_calculz}). Remarque : les angles ne sont pas orientés.\\
 
-% INSERER SCHEMA CALCUL Z
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\textwidth]{dessin_calcul_z.png}
+\caption{Calcul de Z}
+\label{img_calculz}
+\end{center}
+\end{figure}
+
 
 $$ \frac{H}{2} = \tan ( \gamma + \frac{\alpha}{2} ) $$
 $$ \frac{H - R_{balle}}{z} = \tan \gamma  $$
@@ -176,7 +193,7 @@ Par ailleurs avec un tel système dans la balle on peut imaginer que son équili
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.75]{ballefootintelligente.png}
+\includegraphics[width=\textwidth]{ballefootintelligente.png}
 \caption{Smart Ball d'Adidas}
 \label{img:ballefootintelligente}
 \end{center}
@@ -245,7 +262,7 @@ Une des premières approches serait d'utiliser un balayage laser pour détecter 
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.25]{joueurpositionlaser.png}
+\includegraphics[width=\textwidth]{joueurpositionlaser.png}
 \caption{Différents positionnement du capteur à balayage}
 \label{img_joueurpositionlaser}
 \end{center}
