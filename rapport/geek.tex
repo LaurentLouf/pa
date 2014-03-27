@@ -101,7 +101,7 @@ Avec des caméras rapides, tournant à 60 images par seconde, on a un déplaceme
 
 Le principal problème relatif au positionnement des caméras est celui de la distance de détection de la balle par rapport au mur. Si on positionne deux caméras de part et d'autre du filet au niveau de celui-ci, on détecte la balle toujorus au niveau de celui-ci; ce qui nous laisse donc approximativement 200 ms pour faire tourner les algorithmes et déplacer le mur, ce qui est très peu. \\
 
-
+On peut aussi positionner la caméra au-dessus du terrain, et plus particulièrement au-dessus de la partie du terrain du joueur, l'autre partie (entre le filet et le mur) étant assez peu intéressante. Le grand avantage d'un tel positionnement est qu'il permet de suivre la balle et de la détecter donc bien avant qu'elle ne passe au niveau du filet. On gagne ainsi un temps précieux puisque la contrainte temporelle est ici notre contrainte la plus forte. On partira donc sur cette solution, en supposant une installation de la caméra à 5 mètres de haut. Cela impose malheureusement une installation un peu plus complexe.
 
 
 \subsubsection{Résolution d'image et angle de vue}
@@ -123,12 +123,12 @@ Puis on obtient une image avec la balle de tennis qui apparait en blanc sur une 
 Lors de nos tests nous avions beaucoup de bruit à cause notemment de reflets de la balle sur des surfaces brillantes et de nombreuses couleur claires dont la teinte était proches de celle de la balle, nous avons donc opté pour un élément structurant assez gros : un carré de 10 pixels de coté. Il faut donc que la balle soit représentée par plus de 10 pixels pour ne pas être supprimée, ou diminuer la taille de l'élément structurant en supprimant les sources de bruit sur le terrain : pas de vert sur le sol, car proche du jaune en teinte ; pas d'éléments réfléchissant, pas d'éléments jaunes, etc. On comprend aussi l'intéret d'avoir une résolution confortable sur la caméra (FullHd minimum ce qui correspond au minimum à 6 pixels pour la balle au sol, 2500x2000 pixels étant parfait : 12 pixels au sol). Il est à noter qu'il est impossible d'effectuer une érosion ou une dilatation avec un élément structurant plus grand qu'un carré de coté 7. Nous avons donc appliqué deux érosions puis deux dilatations succesives avec un carré de coté 5 comme élément structurant car la composé de 2 érosion/dilatation est une érosion/dilatation avec un élément structurant égal au premier dilaté par le deuxième.\\
 
 
-\begin{figure}%
+\begin{figure}
 \centering
 \subfigure[Image originale]{\includegraphics[width=0.45\textwidth]{photo_traitement1.png}}
 \subfigure[Image après filtrage couleur]{\includegraphics[width=0.45\textwidth]{photo_traitement2.png} \label{img_filtragecouleur}}\\
 \subfigure[Image après filtrage du bruit]{\includegraphics[width=0.45\textwidth]{photo_traitement3.png}}
-\subfigure[Cercle détecté à la fin]{\includegraphics[width=0.45\textwidth]{photo_traitement4.png} \label{3figs-c}}%
+\subfigure[Cercle détecté à la fin]{\includegraphics[width=0.45\textwidth]{photo_traitement4.png} \label{3figs-c}}
 \caption{Différentes étapes de la détection de la balle}
 \label{3figs}
 \end{figure}
@@ -170,6 +170,8 @@ $$ y = z.\tan \alpha _y $$
 
 Pour avoir la vitesse il suffit juste de soustraire le nouveau vecteur position par l'ancien et diviser cette quantité par le pas de temps qui sépare la prise de deux images. Pour pouvoir estimer la trajectoire de la balle, il est nécessaire d'avoir trois vecteurs positions et donc deux vecteurs vitesses (explications plus détaillées dans la prochaine partie). 
 
+
+\subsubsection{Performances}
 
 
 
@@ -217,9 +219,15 @@ Il est à noter qu'un éclairage infrarouge aurait put aussi constituer une gên
 
 \subsection{Caméra normale}
 
-Ce n'est pas parce que nous avons abandonné l'idée d'une caméra ultra-rapide que nous avons abandonné par la même occasion l'idée d'une caméra. Comme nous l'avons vu précedemment avec la vitesse de notre algorithme, nous avons estimé que nous pourrions traiter sans problème un flux de 60fps. Il est clair qu'à 60 fps, même avec un temps d'exposition réglable, qu'entre 2 images, un marqueur sur la balle aura largement tourné autour de la balle à la vitesse maximum de 100 tours par seconde. L'astuce consiste donc à se dire qu'avec un "long" temps d'exposition, on a des flous, plus précisémment des trainées, et elles peuvent s'avérer très utiles pour connaitre la rotation de la balle. Imaginons que la balle tourne autour d'un axe qui est celui qui vertical dans le plan de la feuille. Imaginons maintenant que l'on met un marqueur facilement détectable en traitement de l'image. La balle va tourner en avancant, Donc pendant le temps d'exposition la balle aura avancé (vers la gauche par exemple) et le marqueur sera passé une ou plusieurs fois devant la caméra, laissant une ou plusieurs traces d'une certaine longueur (voir figure ci dessous).
+Ce n'est pas parce que nous avons abandonné l'idée d'une caméra ultra-rapide que nous avons abandonné par la même occasion l'idée d'une caméra. Comme nous l'avons vu précedemment avec la vitesse de notre algorithme, nous avons estimé que nous pourrions traiter sans problème un flux de 60fps. Il est clair qu'à 60 fps, même avec un temps d'exposition réglable, qu'entre 2 images, un marqueur sur la balle aura largement tourné autour de la balle à la vitesse maximum de 100 tours par seconde. L'astuce consiste donc à se dire qu'avec un "long" temps d'exposition, on a des flous, plus précisémment des trainées, et elles peuvent s'avérer très utiles pour connaitre la rotation de la balle. Imaginons que la balle tourne autour d'un axe qui est celui qui vertical dans le plan de la feuille. Imaginons maintenant que l'on met un marqueur facilement détectable en traitement de l'image. La balle va tourner en avancant, Donc pendant le temps d'exposition la balle aura avancé (vers la gauche par exemple) et le marqueur sera passé une ou plusieurs fois devant la caméra, laissant une ou plusieurs traces d'une certaine longueur (voir figures \ref{img_trainee1} et \ref{img_trainee2}).
 
-%INSERER FIGURE EXPLICATIVE
+
+\begin{figure}
+\centering
+\subfigure[Trainée dans le cas d'une rotation selon un axe]{\includegraphics[width=0.45\textwidth]{traine1D.png} \label{img_trainee1}}
+\subfigure[Trainée dans le cas d'une composition de rotations]{\includegraphics[width=0.45\textwidth]{traineev1_r2.png} \label{img_trainee2}}\\
+\caption{Trainées laissées par un marqueur dans le cas d'une exposition longue}
+\end{figure}
 
 En connaissant la vitesse de la balle et la vitesse de la caméra, on peut en déduire la vitesse de rotation de la balle grâce aux nombre de trainées et à leur longueur. Seulement on a imaginé ici le cas avec une seule composante. En imaginant que la rotation ait aussi une composante selon l'axe de la largueur de la feuille on imagine que les trainées ressembleront à des virgules et que le calcul des vitesses de rotations se complexifie largement. Ajoutons maintenant 2 composantes à notre vitesse de translation, et une troisième composante à la rotation, ce qui représente la réalité. Eh bien on se retrouve avec quelque chose d'indigeste et nous n'avons rien put conclure de ces trainé en multidimensionnel ... Nous avons imaginé mettre des marqueurs parfois exotiques pour avoir des trainées distinctes selon les axes en jeu, mais rien de concluant n'est ressorti de cette étude, et nous avons donc définitivement abandonné l'idée de capter cette information de rotation directement par une(des) caméra(s).\\
 
