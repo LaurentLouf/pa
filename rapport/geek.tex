@@ -405,7 +405,18 @@ Marqueurs sur la balle, temps d'expo volontairement long ....
 
 \chapter{Commande du Mur}
 
+Evidemment lorsque l'on a tous nos résultats de position pour le mur, il faut envoyer les consignes à ceux ci pour qu'ils se mettent en place. L'ordinateur qui les gère communiquera donc avec des controlleurs directement implémentés sur chaque plateformes 6 vérins. Ces controlleurs gèreront ensuite les actionneurs pour mettre le tout en mouvement. 
+
+Pour permettre au mur de bouger il fallait choisir ses actionneurs. Nous avons porté notre choix sur des vérins car il permettent de développer d'importants effort en translation. Pour la rotation cela sera fera via une plateforme 6 vérins relativement connue qui sera plus détaillée dans la partie dédiée à la mécanique. La commande se fera via des électrovannes pour amener la pression dans les vérins.
+
 \section{Contrainte de temps}
 
+Le temps que nous nous sommes fixés pour réagir est celui d'un coup droit très fort (100km/h) depuis le fond du terrain, ce qui nous donne 500ms à partir du moment ou la balle est frappé pour que le mur soit en place. \\
+Au niveau des temps de réactions de chaque module, on a 35 ms au niveau du traitement d'images (traitement de 3 images pour en déduire 2 vecteurs vitesses et 3 positions nécessaire pour le module mathématique), puis 70 ms de traitement de la partie mathématique pour obtenir les angles que les murs doivent prendre. Ensuite il y a un temps de réponse de la partie controlleur, majoritairement due au temps de réaction des électrovannes du circuit hydraulique, qui est normallement de 25 à 60ms pour passer d'une position extrême à l'autre, nous prendront donc 60 ms par sécurité ; puis le temps de réaction du mur (mise en mouvement de celui ci en comptant son inertie) de 200ms.\\
+Au final tout cela nous donne un temps de réaction de 365ms, soit une marge de 135ms, soit 27\% ce qui reste confortable dans les cas les plus critiques (balle qui n'est pas détectée tout de suite, joueur qui frappe fort mais du milieu du terrain, etc).
+
 \section{Application des angles calculés}
+
+Les controlleurs seront des systèmes asservis de type PID qui recevront une consigne de position et controlleront les électrovannes pour que chaque mur se retrouve dans la position correspondant à la consigne assignée. Il faudra donc des vannes qui ne soient pas du type On/Off pour un fonctionnement fin. Les controlleurs PID devront donc être les plus performants possible pour atteindre la consigne le plus rapidement possible et assurer la réaction du mur en 260 ms (inertie du mur + temps de réaction des électrovannes) en évitant bien sûr les instabilités.\\
+L'ordinateur pourra envoyer de nouvelles consignes plus fin s'il a eu le temps d'en calculer une autre avant l'impact pour que le mur soit dans une meilleure position. Les controlleurs devront donc être capables de s'adapter rapidement à une nouvelle consigne, ce qui ne devrait pas poser de problème avec un controlleur de type PID.
 
