@@ -80,12 +80,38 @@ Une solution alternative à la détection par laser est la détection par camér
 
 \subsubsection{Algorithmie}
 
+Nous avons donc développé notre algorithme de detection et de calcul de la position de la balle. La première étape était de detecter les pixels correpondant à la balle dans l'image. La balle étant jaune vif nous avons décidé de nous baser sur la teinte pour detecter les pixels en question. La première étape de l'algorithme est donc de convertir l'image définie dans l'espace RGB (Red-Green-Blue) vers l'espace HSV(Hue-Saturation-Value). Nous avons constaté que la balle entière avait une teinte comprise entre 80 et 95 (on peut réduire l'écart mais avec le risque qu'une partie de la balle ne soit pas détecté, en contrepartie on récupère moins de bruit). Nous appliquons donc une fonction de seuil qui remplace les pixels dont la teinte est entre nos valeurs limites par un pixel blanc et les autres par un pixel noir.\\
 
+Puis on obtient une image avec la balle de tennis qui apparait en blanc sur une image noire, mais le tout avec beaucoup de bruit comme on peut le voir ci dessous. Pour supprimer ce bruit nous avons utilisé des fonctions de morphologie mathématique : érosion et dilatation. L'application d'une dilatation sur une érosion de même élement structurant constitue une ouverture morphologique qui a tendance à eliminer les petits éléments isolés. Ainsi les petits blocs de pixels correspondants au bruits sont éliminés tandis que la balle de tennis qui est un bloc de pixel plus grand que l'élément structurant reste en place. Lors de nos tests nous avions beaucoup de bruit à cause notemment de reflets de la balle sur des surfaces brillantes et de nombreuses couleur claires dont la teinte était proches de celle de la balle, nous avons donc opté pour un élément structurant assez gros : un carré de 10 pixels de coté. Il faut donc que la balle soit représenté par plus de 10 pixels pour ne pas être supprimée, ou diminuer la taille de l'élément structurant en supprimant les sources de bruit sur le terrain : pas de vert sur le sol, car proche du jaune en teinte ; pas d'éléments réfléchissant, pas d'éléments jaunes, etc. On comprend aussi l'intéret d'avoir une résolution confortable sur la caméra (FullHd minimum ce qui correspond au minimum a 6 pixels pour la balle au sol, 2500x2000 pixels étant parfait : 12 pixels au sol). Il est à noter qu'il est impossible d'effectuer une érosion ou une dilatation avec un élément structurant plus grand qu'un carré de coté 7. Nous avons donc appliqué deux érosions puis deux dilatations succesives avec un carré de coté 5 comme élément structurant car la composé de 2 érosion/dilatation est une érosion/dilatation avec un élément structurant égal à au premier dilaté par le deuxième.
 
+% INSERER IMAGE AVANT SUPPRESSION DU BRUIT
 
+% THRESHOLD INUTILE AU DEBUT DE CONTOUR ?
 
+Ensuite on applique la fonction findContours de opencv, qui permet de trouver les pixels blanc qui forment des blocs et de déterminer les contours de ces blocs. Ensuite il faut déterminer le plus petit cercle englobant ces blocs afin d'obtenir une position en coordonnées de pixel, et un rayon. Pour cela on applique la fonction minEnclosingCircle de la library OpenCV qui nous permet d'avoir le cercle correspondant pour chaque contour. On peut donc récupérer les coordonnées du centre du cercle et son rayon.
 
+Ensuite grâce à ces informations on peut détecter la position de la balle dans l'espace. Tout d'abord en supposant la caméra en hauteur qui regarde vers le bas, on va chercher à déterminer la profondeur de la balle (axe z, cf schéma ci dessous). Remarque : les angles ne sont pas orientés.
 
+% INSERER SCHEMA CALCUL Z
+
+$ \[\frac{H}{2}\] = \tan (\gamma + \[\frac{\alpha}{2}\])
+\[\frac{H - R_{balle}}{z}\] = \tan \gamma
+z = \frac{H - R{balle}}{\tan \gamma} = \frac{z.\tan (\gamma + \frac{\alpha}{2}) - R_{balle}} {\tan \gamma}
+z.(1 - \frac{\tan (\gamma + \frac{\alpha}{2})}{\tan \gamma}) = \frac{-R_{balle}}{\tan \gamma}
+z = \frac{R_{balle}}{\tan (\gamma + \frac{\alpha}{2}) - \tan \gamma}
+$
+
+On trouve $\alpha$ et $\gamma$ de la manière suivante : On a un coefficient Pix2Rad qui dépend de l'angle d'ouverture de l'objectif de la caméra : si on a une longueur en pixel on la multiplie par ce coefficient pour avoir l'angle qu'il y a entre les 2 points représentés par ces pixels, du coup en considérant les coordonnées du point dans l'image en pixels (xPixels, yPixels) avec l'origine au centre de l'image :
+$
+\alpha = 2.R_{balle}.Pix2Rad
+\gamma = Pix2Rad.\sqrt{xPixels^2 + yPixels^2}
+$
+
+Puis on récupère les coordonnées x et y avec un simple calcul de trigonométrie : on récupère les angles du point selon les axes x et y ($\alpha _x$ et $\alpha _y$) puis :
+$
+x = z.\tan \alpha _x
+y = z.\tan \alpha _y
+$
 
 \section{Détection de la vitesse de rotation}
 
@@ -217,7 +243,7 @@ On peut donc régler la temps d'exposition jusqu'à des valeurs qui permettent d
 
 \paragraph{Sensibilité et monture C\\}
 
-La sensibilité de cette caméra est de 1000 ISO en mode couleur et 3000 ISO en mode couleur, ce qui est assez élevé. La sensibilité représente la sensibilité du capteur à la lumière : ainsi, à quantité de lumière égale, une image prise à sensibilité 1000 ISO sera bien moins lumineuse qu'une image prise avec une sensibilité de 2000 ISO. 
+La sensibilité de cette caméra est de 1000 ISO en mode couleur et 3000 ISO en mode niveaux de gris, ce qui est assez élevé. La sensibilité représente la sensibilité du capteur à la lumière : ainsi, à quantité de lumière égale, une image prise à sensibilité 1000 ISO sera bien moins lumineuse qu'une image prise avec une sensibilité de 2000 ISO. 
 
 Mais la luminosité dépend aussi d'un dernier paramètre qui est l'ouverture de l'objectif et c'est pour cela que la monture C de la caméra est importante. Les objectifs ayant une monture C (type d'attache entre la caméra et l'objectif) ont généralement des ouvertures très grandes ce qui permet donc d'avoir une très grande luminosité. \\
 

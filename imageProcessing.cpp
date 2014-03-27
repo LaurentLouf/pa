@@ -146,10 +146,10 @@ int findBall(VideoCapture& cap, Benchmark& bench, std::vector<CircleFound>& circ
                 #endif
            }
         #else   
-            threshold(imageFiltered, imageFiltered, 100, 255, THRESH_BINARY) ;
+            //threshold(imageFiltered, imageFiltered, 100, 255, THRESH_BINARY) ;
             findContours( imageFiltered, contours, contoursHierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
-
+            #ifdef DISPLAY // inutile pour l'algo non ?
             // Find the convex hull object for each contour
             vector<vector<Point> >hull( contours.size() );
             for( int i = 0; i < contours.size(); i++ )
@@ -162,6 +162,7 @@ int findBall(VideoCapture& cap, Benchmark& bench, std::vector<CircleFound>& circ
                     drawContours( imageFiltered, hull, i, Scalar(255,255,255), 1, 8, vector<Vec4i>(), 0, Point() );
                 #endif
             }
+            #endif
 
 
 

@@ -10,8 +10,8 @@
 
 #include <sys/time.h>
 
-#define OCL
-//#define DISPLAY
+//#define OCL
+#define DISPLAY
 #define HOUGHh
 
 using namespace cv;

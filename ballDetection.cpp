@@ -136,7 +136,7 @@ int main( int argc, char** argv )
     //pthread_create(&threadWall, NULL, mathsRoutine, arg)
 
     gettimeofday(&bench.beginTime, NULL);
-    BallState ballState_t1 ballState_t2;
+    BallState ballState_t1, ballState_t2;
     int numberOfTreatedLoop = 0, numberOfNonTreatedLoop = 0, noTreatment = 0;
     for(i=0 ; i < n ; i++)
     {
@@ -153,7 +153,7 @@ int main( int argc, char** argv )
                 break;
             getBallPosition(ballCircle.x, ballCircle.y, ballCircle.radius*2, ballState_t2);
             calculateBallSpeed(ballState_t2);
-            if(ballState.vy < 0) // si la balle revient en arrière, on arrete le traitement un instant
+            if(ballState_t2.vy < 0) // si la balle revient en arrière, on arrete le traitement un instant
             {
                 noTreatment = 3;
             }
