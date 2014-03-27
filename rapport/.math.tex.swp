@@ -1,0 +1,155 @@
+\part{Partie Modélisation, Simulation et Optimisation}
+
+\section{Code réflexion 2D pour l'estimation de $\alpha_1$}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=9cm]{Figure_Reflexion.png}
+\caption{Modélisation de la réflexion 2D}
+\label{Figure_Reflexion}
+\end{center}
+\end{figure}
+
+\hspace*{0.6cm}Notons $\overrightarrow{u}$ le vecteur directeur du mur dans le plan (x,y). Dans notre modèle, $\overrightarrow{u}$ possède ainsi pour composantes $(\cos \alpha,\sin \alpha)$. La résolution du problème est alors obtenue par la mise en équations suivantes:
+
+Par définition du projeté, il vient :
+$$
+\overrightarrow{MP}=(\overrightarrow{MM_0}.\overrightarrow{u}).\overrightarrow{u}
+$$
+
+$$
+\overline{MP}=\overrightarrow{MM_0}.\overrightarrow{u}=(x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha
+$$
+Soit :
+$$
+P : \left\{
+\begin{aligned}
+x_p = x_M + \left[ (x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha \right] \cos \alpha \\
+y_p = y_M + \left[ (x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha \right] \sin \alpha  \\
+\end{aligned}
+\right.
+$$
+
+De plus, la définition du point virtuel nous donne :
+
+$$
+M_0^{'} = P + \overrightarrow{M_0P}
+$$
+Soit :
+$$
+M_0^{'} : \left\{
+\begin{aligned}
+x_0^{'} = 2*x_M - x_0 + 2\left[ (x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha \right] \cos \alpha \\
+y_0^{'} = 2*y_M - y_0 + 2\left[ (x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha \right] \sin \alpha  \\
+\end{aligned}
+\right.
+$$
+
+L'équation de la droite $(M_0^{'}M)$ est alors :
+$$
+y = y_M +\left( \frac{y_M-y_0^{'}}{x_M-x_0^{'}}\right) (x-x_M)
+$$
+Ce qui nous donne ainsi l'équation reliant $x_R$ et $y_R$ à l'angle du mur $\alpha$ :
+
+\begin{align*}
+(x_R-x_M)&(y_0 - y_M - 2\left[ (x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha \right] \sin \alpha) \\
+& = (y_R-y_M)(x_0 - x_M - 2\left[ (x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha \right] \cos \alpha)
+\end{align*}
+
+Nous devons à ce stade distinguer les cas.
+
+\subsubsection*{\underline{Cas $x_R \neq x_M$}}
+Posons $K=\frac{y_R-y_M}{x_R-x_M}$, l'équation précédente se simplifie alors par :
+\begin{equation}
+(2K\cos\alpha-2\sin\alpha)\left[ (x_0-x_M)\cos \alpha+(y_0-y_M)\sin \alpha \right]=K(x_0-x_M)+y_M-y_0
+\end{equation}
+En factorisant par $\cos\alpha$, il vient :
+$$
+2\cos^2\alpha(K-\tan\alpha)\left[ (x_0-x_M)+(y_0-y_M)\tan\alpha \right]=K(x_0-x_M)+y_M-y_0
+$$
+En utilisant la relation de trigonométrie $\cos^2\alpha=\frac{1}{1+\tan^2\alpha}$, on obtient ainsi un polynôme de degré 2 en la variable $\tan\alpha$ :
+
+\begin{equation}
+\tan^2\alpha+D\tan\alpha-1=0
+\end{equation}
+Avec :
+$$
+D=\frac{2(x_M-x_0+K(y_0-y_M))}{y_M-y_0+K(x_M-x_0)}
+$$
+Le discriminant de ce polynôme vaut : $\Delta=D^2+4>0$. Ainsi le polynôme admet les deux racines réelles :
+$$
+\tan\alpha = \frac{-D\pm \sqrt{D^2+4}}{2}
+$$
+Les degrés de liberté du mur imposant $\alpha\in\left]-\frac{\pi}{4},\frac{\pi}{4} \right[ $, nous obtenons ainsi deux solutions admissibles à notre problème :
+\begin{equation}
+\alpha=\arctan\left(\frac{-D\pm \sqrt{D^2+4}}{2}\right)\\
+\label{expression_alpha}
+\end{equation}
+Un seul de ces deux angles permet le retour de la balle dans le terrain, nous obtenons donc directement l'angle $\alpha_1$ recherché, qui permet à partir d'une position de frappe du joueur $(x_0,y_0)$ en direction d'un point d'impact sur le mur $(x_M,y_M)$ d'atteindre la zone de frappe $(x_R,y_R)$ définie par le schéma d'entrainement.\\
+
+Les figures de la \cref{Reflexion_Matlab} ci-dessous illustrent cette modélisation en traçant les différents rayons, comme introduits dans la \cref{Figure_Reflexion}, avec l'angle $\alpha_1$ déterminé par l'expression mathématique précédente :
+
+\begin{figure}[H]
+  \includegraphics[width = 72mm]{Reflexion_gauche.png}
+  \includegraphics[width = 72mm]{Reflexion_droite.png}
+  \caption{Réflexion vers une zone souhaitée à gauche et à droite}
+  \label{Reflexion_Matlab}
+\end{figure}
+
+%\begin{figure}[H]
+%\centering
+%\begin{subfigure}
+%  \centering
+%  \includegraphics[width=6cm]{Reflexion_gauche.png}
+%  \caption{Réflexion vers une zone souhaitée à gauche}
+%  \label{Reflexion_gauche}
+%\end{subfigure}%
+%\begin{subfigure}
+%  \centering
+%  \includegraphics[width=6cm]{Reflexion_droite.png}
+%  \caption{Réflexion vers une zone souhaitée à droite}
+%  \label{Reflexion_droite}
+%\end{subfigure}
+%\caption{Tracé des figures de réflexion avec deux zones souhaitées différentes}
+%\label{fig:test}
+%\end{figure}
+
+
+\subsubsection*{\underline{Cas $x_R = x_M$}}
+\hspace*{0.6cm}\underline{Dans la théorie :}
+L'équation reliant $x_R$ et $y_R$ à $\alpha$ devient :
+\begin{equation}
+(x_0-x_M)\cos\alpha+(y_0-y_M)\sin\alpha=\frac{x_0-x_M}{2}
+\end{equation}
+En posant :
+$$
+\left\{
+\begin{aligned}
+\cos\gamma = \frac{x_0-x_M}{\sqrt{(x_0-x_M)^2+(y_0-y_M)^2}} \\
+\sin\gamma = \frac{y_0-y_M}{\sqrt{(x_0-x_M)^2+(y_0-y_M)^2}}  \\
+\end{aligned}
+\right.
+$$
+L'équation se met alors sous la forme :
+\begin{equation}
+\cos(\alpha-\gamma)=\cos\alpha\cos\gamma+\sin\alpha\sin\gamma=\frac{x_0-x_M}{2\sqrt{(x_0-x_M)^2+(y_0-y_M)^2}}
+\end{equation}
+Il nous reste donc à inverser cette equation par passage à la fonction $\arccos$. Ceci n'est possible qu'à la condition $\alpha-\gamma \in\left]0,\pi \right[$. Cependant, les informations accessibles à ce niveau du développement sont que les degrés de liberté du mur imposent $\alpha\in\left]-\frac{\pi}{4},\frac{\pi}{4} \right[ $, et que nécessairement $y_0<y_M$, soit $\sin \gamma <0$ et donc $\gamma \in\left]-\pi,0\right[$. Ainsi nous pouvons seulement assurer à ce stade que $\alpha-\gamma \in\left]-\frac{\pi}{4},\frac{5\pi}{4} \right[$, ce qui ne justifie pas le passage systématique au $\arccos$, une distinction de cas supplémentaire est alors une fois de plus nécessaire...\\
+
+\hspace*{0.6cm}\underline{Dans la pratique :}
+Dans l'espoir de réussir a placer le mur dans les conditions souhaitée (définies au préalable par un schéma de jeu fourni par l'entraineur ou le joueur lui-même au début de son entrainement), nous nous devons de réduire le plus possible le temps de calcul de nos différents algorithme.\\
+
+\begin{minipage}{\linewidth}
+      \centering
+      \begin{minipage}{0.45\linewidth}
+          \hspace*{0.6cm}C'est pourquoi la nécessité théorique d'une distinction de cas supplémentaire a été contournée dans la pratique en accordant une erreur de $10^{-10}m$ à la valeur de $x_R$. L'algorithme du cas $x_R \neq x_M$ fonctionne alors comme précédemment, comme le montre la \cref{Reflexion_xM=xR} ci-contre, et cette erreur reste tout à fait admissible dans la pratique (quelques centimètres d'erreur sur le lieu de retour exact de la balle resterait un luxe).
+      \end{minipage}
+      \hspace{0.05\linewidth}
+      \begin{minipage}{0.45\linewidth}
+          \begin{figure}[H]
+              \includegraphics[width=5cm]{Reflexion_xM=xR.png}
+              \caption{Modélisation de la réflexion dans le cas $x_M=x_R$}
+              \label{Reflexion_xM=xR}
+          \end{figure}
+      \end{minipage}
+\end{minipage}
