@@ -2,6 +2,8 @@
 
 using namespace std;
 
+extern WallsAngles wallsAngles;
+
 void getBallPositionFromCamera(int xPixels, int yPixels, double diameterPixels, BallState& ballState)
 {
 	ballState.oldx = ballState.x;
@@ -106,6 +108,11 @@ void copyStateToMaths(BallState & initial_t1, BallState & initial_t2, manchoul& 
 	output.wxi = initial_t1.vx;
 	output.wyi = initial_t1.vy;
 	output.wzi = initial_t1.vz;
+}
+
+void setWallPosition()
+{
+	// accès à wallsAngles pour envoi au mur
 }
 
 

@@ -63,6 +63,7 @@ const char TRACKBAR_VALUE_MAX[] = "Value max";
 
 extern manchoul CI;
 extern louf CF;
+extern WallsAngles wallsAngles;
 
 
 void onMouse( int event, int x, int y, int /*flags*/, void* channel )
@@ -88,7 +89,7 @@ int main( int argc, char** argv )
     Size subPixWinSize(10,10), winSize(31,31);
 
     // Get the video (filename or device)
-    cap.open("MVI_7319.MOV");
+    cap.open("MVI_7320.MOV");
     if( !cap.isOpened() )
     {
         cout << "Could not initialize capturing...\n";
@@ -144,8 +145,10 @@ int main( int argc, char** argv )
     int numberOfTreatedLoop = 0, numberOfNonTreatedLoop = 0, noTreatment = 0;
     for(i=0 ; i < n ; i++)
     {
-        //if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue
-        //{
+        if(i < 120)
+            noTreatment = 1;
+        if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue
+        {
             numberOfTreatedLoop++;
             numberOfNonTreatedLoop = 0;
             ballState_t1 = ballState_t2;
@@ -154,7 +157,7 @@ int main( int argc, char** argv )
             findBall(cap, bench, circles);
             ballCircle = getBestCircle(circles);
             if(ballCircle.radius == 0) // means no circle
-                break;
+                //break;
             getBallPosition(ballCircle.x, ballCircle.y, ballCircle.radius*2, ballState_t2);
             calculateBallSpeed(ballState_t2);
             if(ballState_t2.vy < 0) // si la balle revient en arrière, on arrete le traitement un instant
@@ -163,21 +166,26 @@ int main( int argc, char** argv )
             }
             copyStateToMaths(ballState_t1, ballState_t2, CI);
 
-
-            // Send info to maths
-            pthread_create(&threadMaths, NULL, Pb_Inv, NULL);
+            // Start maths part
+            //if(ballState_t2.v)
+            //pthread_create(&threadMaths, NULL, Pb_Inv, NULL);
 
             #ifdef DEBUG
                 cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
             #endif
             #ifdef DISPLAY
-                char c = (char)waitKey(200);
+                char c = (char)waitKey(1);
                 if( c == 27 )
                 {
-                    break;
+                    //break;
                 }
             #endif
-        //}
+        }
+        else
+        {
+            Mat tmp;
+            cap.read(tmp);
+        }
 
         noTreatment--;      
     }
