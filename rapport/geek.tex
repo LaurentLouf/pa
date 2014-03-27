@@ -97,6 +97,13 @@ Il convient de rappeler pour cette partie que notre balle se déplace dans le pi
 Avec des caméras rapides, tournant à 60 images par seconde, on a un déplacement entre deux prises de vues d'environ 50 cm, ce qui d'après la simulation, permet d'approximer la trajectoire de la balle à une droite. ce qui empêche d'utiliser une caméra grand public de ce type est que, dans celles-ci, le temps d'exposition correspond à la moitié du temps entre deux images, soit ici 1/120 s, donnant ainsi un déplacement de 25 cm. Avec un tel déplacement, on aura donc une traînée floue assez difficilement exploitable. Cependant, en restant sur une vitesse d'acquisition de 60 images par seconde, si on diminue le temps d'exposition, on peut parvenir à obtenir des images tout à fait nettes. Le flou de bougé existe seulement si l'objet en mouvement parcoure plus d'un pixel sur l'image pendant le temps d'exposition, on choisira donc le temps d'exposition en fonction des caractéristiques suivantes de la caméra. 
 
 
+\subsubsection{Positionnement de la caméra}
+
+Le principal problème relatif au positionnement des caméras est celui de la distance de détection de la balle par rapport au mur. Si on positionne deux caméras de part et d'autre du filet au niveau de celui-ci, on détecte la balle toujorus au niveau de celui-ci; ce qui nous laisse donc approximativement 200 ms pour faire tourner les algorithmes et déplacer le mur, ce qui est très peu. \\
+
+
+
+
 \subsubsection{Résolution d'image et angle de vue}
 
 
@@ -354,11 +361,6 @@ Quelques tests seraient nécessaires afin d'évaluer si la solution qui réutili
 \chapter{Déplacement du mur}
 
 
-
-
-\subsubsection{Utilisation d'une caméra ultra-rapide}
-
-La première approche pour la détection de la balle est donc d'utiliser une caméra ultra-rapide qui puisse acquérir plus de 200 images par seconde. De telles caméras existent bien mais son relativement onéreuses : de 10 à 15 000 euros. Néanmoins, elles présentent des caractéristiques intéressantes (on présente ici les caractéristiques de la caméra M3 de idtVision).
 
 \paragraph{Temps d'exposition réglable jusqu'à 1 micro-seconde\\}
 
