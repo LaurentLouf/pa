@@ -44,6 +44,11 @@ int findBall(VideoCapture& cap, Benchmark& bench, std::vector<CircleFound>& circ
         cvtColor(image, imageFiltered, CV_RGB2HSV);
         // Filtering part : Application of the threshold to keep only the color of the ball
         inRange(imageFiltered, Scalar(H_min, V_min, S_min), Scalar(H_max, V_max, S_max), imageFiltered);
+        // Essai pour ne récupérer que le premier plan, à creuser pour détecter le joueur car lent.
+        /*//Ptr<BackgroundSubtractor> pMog;
+        BackgroundSubtractorMOG pMOG;
+        //pMog = BackgroundSubtractorMOG();
+        pMOG(image, imageFiltered);*/
     #endif 
     gettimeofday(&bench.tv_end, NULL);
     bench.filteringTime += (double) (bench.tv_end.tv_sec - bench.tv_begin.tv_sec) + ((double) (bench.tv_end.tv_usec - bench.tv_begin.tv_usec)/1000000);

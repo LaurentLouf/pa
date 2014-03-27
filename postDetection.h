@@ -42,7 +42,7 @@ void getPlayerPosition(Position& playerPosition);
 void setBallTarget(Position& playerPosition, louf& ballTarget);
 void copyStateToMaths(BallState & initial_t1, BallState & initial_t2, manchoul& output);
 louf getLoufStruct(Position& position);
-//void setWallPosition( structure à def);
+void setWallPosition();
 
 
 

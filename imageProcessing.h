@@ -7,8 +7,14 @@
 #include "opencv2/gpu/gpu.hpp"
 #include "opencv2/ocl/ocl.hpp"
 #include "opencv2/nonfree/ocl.hpp"
+#include <opencv2/video/background_segm.hpp>
 
 #include <sys/time.h>
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+
+#include "lib.h"
 
 //#define OCL
 #define DISPLAY
