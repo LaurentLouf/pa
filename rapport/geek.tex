@@ -113,6 +113,8 @@ x = z.\tan \alpha _x
 y = z.\tan \alpha _y
 $
 
+Pour avoir la vitesse il suffit juste de soustraire le nouveau vecteur position par l'ancien.
+
 \section{Détection de la vitesse de rotation}
 
 Un des éléments qui nous paraissait essentiel pour déterminer la trajectoire et le rebond de la balle était la vitesse de rotation de celle ci. En effet il apparait comme trivial qu'une balle qui tourne sur elle même par rapport à un axe parallèle à un plan ne rebondira pas de la même manière qu'une balle sans rotation. Pour le vérifier, il suffit pour celà de se munir d'une balle (de tennis ou autre) de la faire tourner vers soi en la laissant tomber verticalement au sol et la balle va rebondir vers soi.\\
@@ -165,6 +167,10 @@ Maintenant que notre option caméra était bel et bien enterrée, il nous fallai
 Par ailleurs avec un tel système dans la balle on peut imaginer que son équilibrage peut être altéré de façon plus ou moins importante selon le poids du module embarqué, et que ce déséquilibrage peut entrainer une gène pour le joueur de tennis ainsi qu'une modification du comportement de la balle qui a été étudié dans la partie mathématiques. Enfin il faut trouver un système relativement résistant, pour subir des forces centrifuges extrèmes ainsi que des accélérations hors du commun (quelques centaines de g).
 
 \subsubsection{Algorithmie}
+
+Dans ce cas 2 options algorithmique sont possibles : \\
+- soit on interroge la balle à temps constant, par exemple 100 ou 200ms (pas trop souvent pour économiser sa batterie, et pas trop peu pour avoir le temps de réagir si la balle a bien avancé depuis la dernière interrogation). Puis à chaque nouvelle donnée on met à jour les données correspondantes sur la partie calcul mathématiques.
+- soit on attend d'avoir une vitesse de balle positive (balle qui avance vers le mur) pour faire la requête, ce qui économisera le nombre de requètes, cependant il existe une latence non négligeable (de l'ordre de 100ms) sur tous les systèmes sans fil. Il est donc possible que cette latence ne nous permette pas d'avoir le temps de calculer les données pour le mur
 
 \subsection{Raquette intelligente}
 

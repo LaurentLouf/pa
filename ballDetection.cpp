@@ -24,6 +24,7 @@ using namespace std;
 
 #include "imageProcessing.h"
 #include "postDetection.h"
+#include "lib.h"
 
 int HUE_CHANNEL = 0 ;
 int SATURATION_CHANNEL = 2 ; 
@@ -59,6 +60,9 @@ const char TRACKBAR_SATURATION_MAX[] = "Saturation max";
 
 const char TRACKBAR_VALUE_MIN[] = "Value min";
 const char TRACKBAR_VALUE_MAX[] = "Value max";
+
+extern manchoul CI;
+extern louf CF;
 
 
 void onMouse( int event, int x, int y, int /*flags*/, void* channel )
@@ -140,8 +144,8 @@ int main( int argc, char** argv )
     int numberOfTreatedLoop = 0, numberOfNonTreatedLoop = 0, noTreatment = 0;
     for(i=0 ; i < n ; i++)
     {
-        if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue
-        {
+        //if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue
+        //{
             numberOfTreatedLoop++;
             numberOfNonTreatedLoop = 0;
             ballState_t1 = ballState_t2;
@@ -157,9 +161,11 @@ int main( int argc, char** argv )
             {
                 noTreatment = 3;
             }
+            copyStateToMaths(ballState_t1, ballState_t2, CI);
+
 
             // Send info to maths
-            //pthread_create(&threadMaths, NULL, mathsRoutine, arg)
+            pthread_create(&threadMaths, NULL, Pb_Inv, NULL);
 
             #ifdef DEBUG
                 cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
@@ -171,7 +177,7 @@ int main( int argc, char** argv )
                     break;
                 }
             #endif
-        }
+        //}
 
         noTreatment--;      
     }
