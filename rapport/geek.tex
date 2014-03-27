@@ -24,13 +24,13 @@ Si on veut détecter cette rotation, dans le cas d'une caméra, il faudrait donc
 
 \subsubsection{Rideaux de lasers}
 
-Une première méthode pour détecter la position de la balle à différents instants serait d'utiliser des barrières de lasers comme on peut en trouver dans l'industrie pour limiter l'accès à des machines dangeureuses. On peut en voir notamment sur la figure %\ref{img:rideaulasers}.
+Une première méthode pour détecter la position de la balle à différents instants serait d'utiliser des barrières de lasers comme on peut en trouver dans l'industrie pour limiter l'accès à des machines dangeureuses. On peut en voir notamment sur la figure \ref{img_rideaulasers}.
 
-\begin{figure}[H]
+\begin{figure}[h]
 \begin{center}
 \includegraphics{rideaulaser.png}
 \caption{Rideau laser}
-\label{img:rideaulasers}
+\label{img_rideaulasers}
 \end{center}
 \end{figure}
 
@@ -56,7 +56,7 @@ L'ensemble de ces caractéristiques (portée, résolution angulaire et fréquenc
 
 Une solution pour ne pas avoir à multiplier les capteurs est d'utiliser un capteur qui fasse un balayage 3D, ce qui permet donc d'avoir plusieurs positions de la balle avec un seul capteur. Néanmoins, il semble impossible d'avoir un capteur qui puisse avoir une cadence suffisamment élevée pour réaliser ces mesures et le prix d'un tel capteur serait tout simplement beaucoup trop élevé, sachant que la meilleure référence trouvée\footnote{http://www.robotshop.com/eu/fr/capteur-3d-balayage-laser-precision.html} coûte déjà plus de 50 000\texteuro. Malheureusement, même à ce prix, la vitesse de scan est bien trop faible pour pouvoir être utilisée dans le cadre de notre application. 	
 
-\begin{figure}[H]
+\begin{figure}[h]
 \begin{center}
 \includegraphics{laserbalyage3d.png}
 \caption{Capteur laser à balayage 3D}
@@ -90,7 +90,7 @@ Une solution alternative à la détection par laser est la détection par camér
 
 Nous avons donc développé notre algorithme de detection et de calcul de la position de la balle. La première étape était de detecter les pixels correpondant à la balle dans l'image. La balle étant jaune vif nous avons décidé de nous baser sur la teinte pour detecter les pixels en question. La première étape de l'algorithme est donc de convertir l'image définie dans l'espace RGB (Red-Green-Blue) vers l'espace HSV(Hue-Saturation-Value). Nous avons constaté que la balle entière avait une teinte comprise entre 80 et 95 (on peut réduire l'écart mais avec le risque qu'une partie de la balle ne soit pas détecté, en contrepartie on récupère moins de bruit). Nous appliquons donc une fonction de seuil qui remplace les pixels dont la teinte est entre nos valeurs limites par un pixel blanc et les autres par un pixel noir.\\
 
-Puis on obtient une image avec la balle de tennis qui apparait en blanc sur une image noire, mais le tout avec beaucoup de bruit comme on peut le voir ci dessous. Pour supprimer ce bruit nous avons utilisé des fonctions de morphologie mathématique : érosion et dilatation. L'application d'une dilatation sur une érosion de même élement structurant constitue une ouverture morphologique qui a tendance à eliminer les petits éléments isolés. Ainsi les petits blocs de pixels correspondants au bruits sont éliminés tandis que la balle de tennis qui est un bloc de pixel plus grand que l'élément structurant reste en place. Lors de nos tests nous avions beaucoup de bruit à cause notemment de reflets de la balle sur des surfaces brillantes et de nombreuses couleur claires dont la teinte était proches de celle de la balle, nous avons donc opté pour un élément structurant assez gros : un carré de 10 pixels de coté. Il faut donc que la balle soit représenté par plus de 10 pixels pour ne pas être supprimée, ou diminuer la taille de l'élément structurant en supprimant les sources de bruit sur le terrain : pas de vert sur le sol, car proche du jaune en teinte ; pas d'éléments réfléchissant, pas d'éléments jaunes, etc. On comprend aussi l'intéret d'avoir une résolution confortable sur la caméra (FullHd minimum ce qui correspond au minimum a 6 pixels pour la balle au sol, 2500x2000 pixels étant parfait : 12 pixels au sol). Il est à noter qu'il est impossible d'effectuer une érosion ou une dilatation avec un élément structurant plus grand qu'un carré de coté 7. Nous avons donc appliqué deux érosions puis deux dilatations succesives avec un carré de coté 5 comme élément structurant car la composé de 2 érosion/dilatation est une érosion/dilatation avec un élément structurant égal à au premier dilaté par le deuxième.
+Puis on obtient une image avec la balle de tennis qui apparait en blanc sur une image noire, mais le tout avec beaucoup de bruit comme on peut le voir ci dessous. Pour supprimer ce bruit nous avons utilisé des fonctions de morphologie mathématique : érosion et dilatation. L'application d'une dilatation sur une érosion de même élement structurant constitue une ouverture morphologique qui a tendance à eliminer les petits éléments isolés. Ainsi les petits blocs de pixels correspondants au bruits sont éliminés tandis que la balle de tennis qui est un bloc de pixel plus grand que l'élément structurant reste en place. Lors de nos tests nous avions beaucoup de bruit à cause notemment de reflets de la balle sur des surfaces brillantes et de nombreuses couleur claires dont la teinte était proches de celle de la balle, nous avons donc opté pour un élément structurant assez gros : un carré de 10 pixels de coté. Il faut donc que la balle soit représenté par plus de 10 pixels pour ne pas être supprimée, ou diminuer la taille de l'élément structurant en supprimant les sources de bruit sur le terrain : pas de vert sur le sol, car proche du jaune en teinte ; pas d'éléments réfléchissant, pas d'éléments jaunes, etc. On comprend aussi l'intéret d'avoir une résolution confortable sur la caméra (FullHd minimum ce qui correspond au minimum a 6 pixels pour la balle au sol, 2500x2000 pixels étant parfait : 12 pixels au sol). Il est à noter qu'il est impossible d'effectuer une érosion ou une dilatation avec un élément structurant plus grand qu'un carré de coté 7. Nous avons donc appliqué deux érosions puis deux dilatations succesives avec un carré de coté 5 comme élément structurant car la composé de 2 érosion/dilatation est une érosion/dilatation avec un élément structurant égal à au premier dilaté par le deuxième.\\
 
 % INSERER IMAGE AVANT SUPPRESSION DU BRUIT
 
@@ -174,7 +174,7 @@ Maintenant que notre option caméra était bel et bien enterrée, il nous fallai
 
 Par ailleurs avec un tel système dans la balle on peut imaginer que son équilibrage peut être altéré de façon plus ou moins importante selon le poids du module embarqué, et que ce déséquilibrage peut entrainer une gène pour le joueur de tennis ainsi qu'une modification du comportement de la balle qui a été étudié dans la partie mathématiques. Enfin il faut trouver un système relativement résistant, pour subir des forces centrifuges extrèmes ainsi que des accélérations hors du commun (quelques centaines de g). Néanmoins, il semble qu'un tel système soit tout à fait réalisable puisqu'Adidas a annoncé la commercialisation de sa Smart Ball pour le mois de Juin 2014. C'est un ballon de foot connecté et bourrée de capteurs qui permet d'analyser les coups et de retranscrireavec une grande précision la trajectoire de la balle (apparemment sous la condition d'une frappe de plus de 10m). 
 
-\begin{figure}[H]
+\begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.75]{ballefootintelligente.png}
 \caption{Smart Ball d'Adidas}
@@ -241,21 +241,45 @@ Cette partie est bien moins complexe que la précédente étant donné les vites
 
 \section{Balayage laser}
 
-Une des premières approches serait d'utiliser un balayage laser pour détecter le joueur. En fonction du positionnement du capteur, on peut vouloir un balayage sur 90$^\circ$ dans le cas d'un capteur sur l'un des côtés du filet (ou dans un des coins du terrain, côté joueur) , ou 180$^\circ$ si on décide de placer le capteur au centre du terrain au niveau du filet. On préferera placer les capteurs au niveau du filet puisque si on les place côté joueur, il faut laisser une certaine distance de sécurité pour qu'ils ne gênent pas le joueur dans aucun cas, ce qui fait augmenter la portée que doit avoir le capteur. La figure %\ref{img:joueurpositionlaser} reprend les différentes configurations possibles pour le positionnement du capteur. 
+Une des premières approches serait d'utiliser un balayage laser pour détecter le joueur. En fonction du positionnement du capteur, on peut vouloir un balayage sur 90$^\circ$ dans le cas d'un capteur sur l'un des côtés du filet (ou dans un des coins du terrain, côté joueur) , ou 180$^\circ$ si on décide de placer le capteur au centre du terrain au niveau du filet. On préferera placer les capteurs au niveau du filet puisque si on les place côté joueur, il faut laisser une certaine distance de sécurité pour qu'ils ne gênent le joueur dans aucun cas, ce qui fait augmenter la portée que doit avoir le capteur. Dans ce dernier cas, les capteurs sont aussi plus sujets à prendre des coups s'ils sont placés derrière le joueur (balles non rattrapées par le joueur par exemple). La figure \ref{img_joueurpositionlaser} reprend les différentes configurations possibles pour le positionnement du capteur. 
 
-\begin{figure}[H]
+\begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.25]{joueurpositionlaser.png}
 \caption{Différents positionnement du capteur à balayage}
-\label{img:joueurpositionlaser}
+\label{img_joueurpositionlaser}
 \end{center}
 \end{figure}
 
-Comme expliqué dans le chapitre sur 
+Comme expliqué dans le chapitre sur la détection de la balle, la partie traitement des données envoyées par le capteur est assez simple. Si cette solution est choisie, il faudra cependant prendre plusieurs aspects en compte : 
 
+\begin{itemize}
+\item Ne pas provoquer de lésions oculaires dans le cas où le joueur regarde dans la direction du laser. On devra donc choisir un laser de classe 1 ou 2
+\item La hauteur à laquelle est placée le capteur : on le placera par exemple à 1 mètre de haut afin de bien pouvoir détecter le joueur. 
+\item Il faudra avoir une portée d'au moins 17 mètres dans le cas des lasers placés aux bords des terrains, 13 mètres dans le cas du laser placé au centre du terrain au niveau du filet et 16 mètres dans le cas du capteur placé au centre du terrain mais derrière le joueur (avec 3 mètres entre le fond de court et le capteur\\)
+\end{itemize}
+
+Un laser tel que le LMS500 de SICK\footnote{https://www.mysick.com/PDF/Create.aspx?ProductID=55907\&Culture=fr-FR} semble donc être une bonne référence mais son prix est quelque peu prohibitif (9 000\$). Le PS80-90 de Triple-In\footnote{http://www.triple-in.de/fileadmin/user\_upload/datenblaetter/2d-laserscanner/PS80-90\_E.pdf} semble aussi être une bonne référence mais impossible d'avoir son prix. 
 
 
 \section{Caméra}
+
+Pour la détection avec la caméra, on peut utiliser la caméra qui sert à la détection de la balle, ce qui économise donc un capteur. Pour détecter le joueur, étant donné que les contraintes temporelles sont moins fortes, on peut utiliser des fonctions plus complexes de la bilbiothèque d'OpenCV comme les fonctions d'extraction d'arrière-plan qui permettraient de trouver le joueur dans l'image. Cela prendrait bien plus de temps qu'en utilisant des lasers mais le temps n'est pas vraiment un problème dans ce cas. Si jamais la vitesse d'exécution du script est trop importante, on pourra se souvenir qu'une grande précision n'est pas nécessaire dans ce cas et ainsi travailler avec des images ayant une résolution bien inférieure à la résolution d'origine de la caméra puisque le joueur représente 5\% de la largeur (en supposant une envergure moyenne, toutes positions du joueur confondues, de 50 cm) du terrain et donc de l'image. \\ 
+
+
+Quelques tests rapides donnent des temps d'exécution pour la suppression de l'arrière-plan de 50 ms pour une résolution d'image de 640 par 480, on peut donc espérer que l'algorithme entier tourne à 10Hz, ce qui devrait être largement suffisant pour détecter la position du joueur ainsi que ses intentions. 
+
+
+\section{Conclusion}
+
+Quelques tests seraient nécessaires afin d'évaluer si la solution qui réutilise 
+
+
+
+
+
+
+
 
 
 
