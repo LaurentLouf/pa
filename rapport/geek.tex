@@ -24,7 +24,7 @@ Si on veut détecter cette rotation, dans le cas d'une caméra, il faudrait donc
 
 \subsubsection{Rideaux de lasers}
 
-Une première méthode pour détecter la position de la balle à différents instants serait d'utiliser des barrières de lasers comme on peut en trouver dans l'industrie pour limiter l'accès à des machines dangeureuses. On peut en voir notamment sur la figure \ref{img:rideaulasers}. \\
+Une première méthode pour détecter la position de la balle à différents instants serait d'utiliser des barrières de lasers comme on peut en trouver dans l'industrie pour limiter l'accès à des machines dangeureuses. On peut en voir notamment sur la figure %\ref{img:rideaulasers}.
 
 \begin{figure}[H]
 \begin{center}
@@ -172,7 +172,7 @@ Maintenant que notre option caméra était bel et bien enterrée, il nous fallai
 
 Par ailleurs avec un tel système dans la balle on peut imaginer que son équilibrage peut être altéré de façon plus ou moins importante selon le poids du module embarqué, et que ce déséquilibrage peut entrainer une gène pour le joueur de tennis ainsi qu'une modification du comportement de la balle qui a été étudié dans la partie mathématiques. Enfin il faut trouver un système relativement résistant, pour subir des forces centrifuges extrèmes ainsi que des accélérations hors du commun (quelques centaines de g). Néanmoins, il semble qu'un tel système soit tout à fait réalisable puisqu'Adidas a annoncé la commercialisation de sa Smart Ball pour le mois de Juin 2014. C'est un ballon de foot connecté et bourrée de capteurs qui permet d'analyser les coups et de retranscrireavec une grande précision la trajectoire de la balle (apparemment sous la condition d'une frappe de plus de 10m). 
 
- \begin{figure}[H]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{ballefootintelligente.png}
 \caption{Smart Ball d'Adidas}
@@ -230,10 +230,24 @@ Cependant le système actuel ne serait pas capable de fournir la vitesse de rota
 
 On s'intéresse dans cette partie à la détection du joueur, pour pouvoir décider de la position de la balle que l'on renvoie avec le mur en fonction du style de jeu qui aura été décidé par le joueur lui-même. On s'intéressera donc aussi bien à la position du joueur mais aussi à son déplacement, pour pouvoir déterminer son intention (pour pouvoir prendre le joueur à contre-pied par exemple), mais aussi l'effort fourni depuis le début de l'entraînement (nombre de calories brûlées, distance parcourue et autres statistiques du genre). \\
 
-Cette partie est bien moins complexe que la précédente étant donné les vitesses de déplacement bien moindre, des contraintes temporelles moins fortes et aussi une précision requise bien inférieure.
+Cette partie est bien moins complexe que la précédente étant donné les vitesses de déplacement bien moindre donc des contraintes temporelles moins fortes et aussi une précision requise bien inférieure à celle requise pour la détection de la balle. Comme dans le cas de celle-ci, on a une multitude de solutions techniques qui permettent de réaliser cette détection. Si certaines solutions pour la détection de la balle permettent aussi de détecter la position du joueur, il peut être bon d'avoir un capteur dédié à cela, les données provenant du capteur détectant la balle peuvent servir à confirmer celles de la solution dédiée.
 
 
 \section{Balayage laser}
+
+Une des premières approches serait d'utiliser un balayage laser pour détecter le joueur. En fonction du positionnement du capteur, on peut vouloir un balayage sur 90$^\circ$ dans le cas d'un capteur sur l'un des côtés du filet (ou dans un des coins du terrain, côté joueur) , ou 180$^\circ$ si on décide de placer le capteur au centre du terrain au niveau du filet. On préferera placer les capteurs au niveau du filet puisque si on les place côté joueur, il faut laisser une certaine distance de sécurité pour qu'ils ne gênent pas le joueur dans aucun cas, ce qui fait augmenter la portée que doit avoir le capteur. La figure %\ref{img:joueurpositionlaser} reprend les différentes configurations possibles pour le positionnement du capteur. 
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.25]{joueurpositionlaser.png}
+\caption{Différents positionnement du capteur à balayage}
+\label{img:joueurpositionlaser}
+\end{center}
+\end{figure}
+
+Comme expliqué dans le chapitre sur 
+
+
 
 \section{Caméra}
 
