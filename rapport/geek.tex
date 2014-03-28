@@ -106,7 +106,15 @@ On peut aussi positionner la caméra au-dessus du terrain, et plus particulière
 
 \subsubsection{Résolution d'image et angle de vue}
 
+Sachant maintenant où sera placée la caméra, on peut donc faire les calculs nécessaires à la détermination de la résolution souhaitée ainsi que de l'angle de vue qu'on souhaite avoir.
 
+Pour l'angle de vue, un calcul assez simple donne la formule suivante : 
+
+$$ \alpha = \arctan ( \frac{H}{L}) $$
+
+Où $\alpha$ est l'angle de vue, H la hauteur à laquelle où est installée la caméra et L la largeur du terrain. Le terrain étant quasiment carré, on prendra une caméra dont le capteur est carré, et en prenant L comme la largeur du terrain, il ne nous manquera qu'une très petite partie (moins d'un mètre) en partant du filet, ce qui n'aura pour seule conséquence que de ne pas permettre le jeu au filet, ce qui n'est généralement pas la volonté d'un joueur en entraînement. On pourrait aussi plusieurs caméras, deux ou quatre, pour couvrir tout le terrain. \\ 
+
+Dans le cas d'une seule caméra, avec une résolution de 2048*2048, on obtient, à raz du sol, une résolution de 7.4mm/pixel, ce qui donne 9 pixels pour la balle, et à un mètre du sol, on a 6.0mm/pixel, ce qui donne 11 pixels pour la balle. Ces chiffres
 
 
 
