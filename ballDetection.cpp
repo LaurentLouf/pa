@@ -143,11 +143,9 @@ int main( int argc, char** argv )
     gettimeofday(&bench.beginTime, NULL);
     BallState ballState_t1, ballState_t2;
     int numberOfTreatedLoop = 0, numberOfNonTreatedLoop = 0, noTreatment = 0;
-    for(i=0 ; i < n ; i++)
+    for(i=0 ; i < n ; i++) // boucle for car vidéo, avec un stream, sûrement un while(1)
     {
-        if(i < -120)
-            noTreatment = 1;
-        if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue
+        if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue à approfondir
         {
             numberOfTreatedLoop++;
             numberOfNonTreatedLoop = 0;
@@ -167,8 +165,8 @@ int main( int argc, char** argv )
             copyStateToMaths(ballState_t1, ballState_t2, CI);
 
             // Start maths part
-            //if(ballState_t2.v)
-            //pthread_create(&threadMaths, NULL, Pb_Inv, NULL);
+            if(ballState_t2.v)
+                pthread_create(&threadMaths, NULL, Pb_Inv, NULL);
 
             #ifdef DEBUG
                 cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
