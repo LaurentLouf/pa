@@ -79,14 +79,14 @@ Une solution pour ne pas avoir à multiplier les capteurs est d'utiliser un capt
 
 La partie algorithmie d'une telle méthode de détection est très simple : le capteur fournit les distances des objets détectés à tous les angles (ou toutes les positions) parcourues par le système. Après avoir réalisé une mesure avec le terrain vide, on note les valeurs obtenues quand il n'y a aucune balle présente, on peut donc ensuite comparer à ces valeurs de référence les nouvelles valeurs et en déduire à quel angle et à quelle distance on a détecté quelque chose. \\ 
 
-Il faut déterminer si le quelque chose est bien la balle et non le joueur (dans le cas où on fait un balayage, sinon on place les rideaux lasers de part et d'autre du filet et il semble évident que le joueur ne va pas jouer au filet contre un mur). Pour ce faire, il suffit de regarder s'il existe plusieurs angles pour lesquels on a détecté quelque chose. Avec une résolution angulaire choisie de manière intélligente, on est sûr que la balle ne puisse pas traverser plus d'un ou deux rayons. On peut donc être sûr dans les autres cas que c'est le joueur qui est détecté.\\ 
+Il faut déterminer si le quelque chose est bien la balle et non le joueur (dans le cas où on fait un balayage, sinon on place les rideaux lasers de part et d'autre du filet et il semble évident que le joueur ne va pas jouer au filet contre un mur). Pour ce faire, il suffit de regarder s'il existe plusieurs angles pour lesquels on a détecté quelque chose. Avec une résolution angulaire choisie de manière intelligente, on est sûr que la balle ne puisse pas traverser plus d'un ou deux rayons. On peut donc être sûr dans les autres cas que c'est le joueur qui est détecté.\\ 
 
-Cette solution est donc une solution assez coûteuse et la technologie d'ajourd'hui ne semble pas pouvoir remplir nos besoins en termes de vitesse de détection, de portée et de résolution à la fois. Il s'agit finalement que d'une tâche assez simple et il doit donc exister d'autres solutions qui puissent répondre à nos besoin pour un coût bien moindre. 
+Cette solution est donc une solution assez coûteuse et la technologie d'aujourd'hui ne semble pas pouvoir remplir nos besoins en termes de vitesse de détection, de portée et de résolution à la fois. Il s'agit finalement que d'une tâche assez simple et il doit donc exister d'autres solutions qui puissent répondre à nos besoin pour un coût bien moindre. 
 
 
 \subsection{Détection par caméra}
 
-Une solution alternative à la détection par laser est la détection par caméra. Si cette méthode pose quelques problèmes que l'on a pas avec la détection par laser, elle en résoud certain. On capte en effet une assez grande surface, on n'a donc pas besoin d'une vitesse excessivement élevée pour avoir la balle dans le champ (ce qui est par contre très problématique avec le laser). On a par contre des problèmes de flou que l'on n'avait pas avant. La détection de la balle est aussi plus problématique puisqu'il faut la distinguer du reste de l'environnement qui est visuellement très riche et bourré d'information, dont la très grande majorité est inutile dans notre cas. Bien positionnée, une caméra peut aussi servir à détecter le joueur ce qui est le sujet d'une autre partie. \\ 
+Une solution alternative à la détection par laser est la détection par caméra. Si cette méthode pose quelques problèmes que l'on a pas avec la détection par laser, elle en résoud certain. On capte en effet une assez grande surface, on n'a donc pas besoin d'une vitesse excessivement élevée pour avoir la balle dans le champ (ce qui est par contre très problématique avec le laser). On a par contre des problèmes de flou que l'on n'avait pas avant. La détection de la balle est aussi plus problématique puisqu'il faut la distinguer du reste de l'environnement qui est visuellement très riche et bourré d'informations, dont la très grande majorité est inutile dans notre cas. Bien positionnée, une caméra peut aussi servir à détecter le joueur ce qui est le sujet d'une autre partie. \\ 
 
 Dans le cas où on utilise une caméra, il convient de chosir celle-ci correctement en fonction de notre application. Outre le nombre d'images par secondes, il faut aussi déterminer ses autres caractéristiques : temps d'exposition, sensibilité, type d'objectif... ainsi que son positionnement : au-dessus du terrain ou sur les côtés ? 
 
@@ -99,7 +99,7 @@ Avec des caméras rapides, tournant à 60 images par seconde, on a un déplaceme
 
 \subsubsection{Positionnement de la caméra}
 
-Le principal problème relatif au positionnement des caméras est celui de la distance de détection de la balle par rapport au mur. Si on positionne deux caméras de part et d'autre du filet au niveau de celui-ci, on détecte la balle toujorus au niveau de celui-ci; ce qui nous laisse donc approximativement 200 ms pour faire tourner les algorithmes et déplacer le mur, ce qui est très peu. \\
+Le principal problème relatif au positionnement des caméras est celui de la distance de détection de la balle par rapport au mur. Si on positionne deux caméras de part et d'autre du filet au niveau de celui-ci, on détecte la balle toujours au niveau de celui-ci; ce qui nous laisse donc approximativement 200 ms pour faire tourner les algorithmes et déplacer le mur, ce qui est très peu. \\
 
 On peut aussi positionner la caméra au-dessus du terrain, et plus particulièrement au-dessus de la partie du terrain du joueur, l'autre partie (entre le filet et le mur) étant assez peu intéressante. Le grand avantage d'un tel positionnement est qu'il permet de suivre la balle et de la détecter donc bien avant qu'elle ne passe au niveau du filet. On gagne ainsi un temps précieux puisque la contrainte temporelle est ici notre contrainte la plus forte. On partira donc sur cette solution, en supposant une installation de la caméra à 5 mètres de haut. Cela impose malheureusement une installation un peu plus complexe.
 
@@ -112,11 +112,13 @@ Pour l'angle de vue, un calcul assez simple donne la formule suivante :
 
 $$ \alpha = \arctan ( \frac{H}{L}) $$
 
-Où $\alpha$ est l'angle de vue, H la hauteur à laquelle où est installée la caméra et L la largeur du terrain. Le terrain étant quasiment carré, on prendra une caméra dont le capteur est carré, et en prenant L comme la largeur du terrain, il ne nous manquera qu'une très petite partie (moins d'un mètre) en partant du filet, ce qui n'aura pour seule conséquence que de ne pas permettre le jeu au filet, ce qui n'est généralement pas la volonté d'un joueur en entraînement. On pourrait aussi plusieurs caméras, deux ou quatre, pour couvrir tout le terrain. \\ 
+Où $\alpha$ est l'angle de vue, H la hauteur à laquelle où est installée la caméra et L la largeur du terrain. Le terrain étant quasiment carré, on prendra une caméra dont le capteur est carré, et en prenant L comme la largeur du terrain, il ne nous manquera qu'une très petite partie (moins d'un mètre) en partant du filet, ce qui n'aura pour seule conséquence que de ne pas permettre le jeu au filet, ce qui n'est généralement pas la volonté d'un joueur en entraînement. On pourrait aussi utiliser plusieurs caméras, deux ou quatre, pour couvrir tout le terrain. \\ 
 
 Dans le cas d'une seule caméra, avec une résolution de 2048*2048, on obtient, à raz du sol, une résolution de 7.4mm/pixel, ce qui donne 9 pixels pour la balle, et à un mètre du sol, on a 6.0mm/pixel, ce qui donne 11 pixels pour la balle. Ces chiffres
 
-
+% ####################################
+% FIN DE PHRASE ?
+% ###################################
 
 \subsubsection{Algorithmie}
 
