@@ -224,6 +224,11 @@ Il est à noter qu'un éclairage infrarouge aurait put aussi constituer une gên
 
 
 
+\subsection{Conclusion}
+
+Pour conclure quand à la détection de la position et de la vitesse linéaire de la balle, la solution de la caméra nous semble la plus pertinente, car le choix d'une caméra compatible apparait comme beaucoup plus aisé, tandis qu'il faut espérer qu'un modèle haut de gamme existe au niveau des lasers à balayage ; ou bien accumuler les lasers simples avec le surcoût qui s'en suit. Ce surcoût est aussi en faveur de la solution caméra, car une bonne caméra avec les réglages qu'il nous faut doit pouvoir être acquise pour environ 1000€, tandis qu'il faut compter à 5 chiffres minimum pour un système laser. Cependant le traitement d'images est bien plus coûteux en temps, ce qui n'est pas sans importance sur ce projet, mais d'après la section concernant les performances, on voit qu'il est tout à fait possible de considérer sérieusement cette option, qui, au final, nous parait la plus sensée.
+
+
 \section{Détection de la vitesse de rotation}
 
 Un des éléments qui nous paraissait essentiel pour déterminer la trajectoire et le rebond de la balle était la vitesse de rotation de celle ci. En effet il apparait comme trivial qu'une balle qui tourne sur elle même par rapport à un axe parallèle à un plan ne rebondira pas de la même manière qu'une balle sans rotation. Pour le vérifier, il suffit pour celà de se munir d'une balle (de tennis ou autre) de la faire tourner vers soi en la laissant tomber verticalement au sol et la balle va rebondir vers soi.\\
@@ -315,6 +320,10 @@ Cependant le système actuel ne serait pas capable de fournir la vitesse de rota
 
 
 
+\subsection{Conclusion}
+
+Par rapport à la détermination de la vitesse de rotation de la balle, notre position a énormément évolué. Les parties ci-dessus décrivent chronologiquement nos points de vue et expliquent pourquoi nous avons abandonné ces idées, comme par exemple à cause du coût, des définitions extrêmes et du temps de traitement trop important avec des caméra ultra rapides, du problème d'algorithmie avec une caméra simple, et des problèmes inhérent à l'usage d'une balle ou d'une raquette intelligente.\\
+Finalement nous avons décidé d'abandonner la détermination de cette vitesse de rotation par notre partie et c'est le module mathématique qui se charge de trouver cette vitesse avec l'effet magnus visionné par les captures de position et de vitesse. Le détail de ce calcul sera détaillé plus tard. Cependant si Babolat conçoit une raquette fournissant ces informations ou que la puissance des ordinateur explose encore, avec l'utilisation de caméras très rapides alors remise au goût du jour, nous pourrions déterminer précisément ces données.
 
 
 
