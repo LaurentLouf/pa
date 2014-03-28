@@ -99,7 +99,8 @@ Avec des caméras rapides, tournant à 60 images par seconde, on a un déplaceme
 
 \subsubsection{Positionnement de la caméra}
 
-Le principal problème relatif au positionnement des caméras est celui de la distance de détection de la balle par rapport au mur. Si on positionne deux caméras de part et d'autre du filet au niveau de celui-ci, on détecte la balle toujours au niveau de celui-ci; ce qui nous laisse donc approximativement 200 ms pour faire tourner les algorithmes et déplacer le mur, ce qui est très peu. \\
+Le principal problème relatif au positionnement des caméras est celui de la distance de détection de la balle par rapport au mur. Si on positionne deux caméras de part et d'autre du filet au niveau de celui-ci, on détecte la balle toujours au niveau de celui-ci, ce qui nous laisse donc approximativement 200 ms pour faire tourner les algorithmes et déplacer le mur, ce qui est très peu. \\
+
 
 On peut aussi positionner la caméra au-dessus du terrain, et plus particulièrement au-dessus de la partie du terrain du joueur, l'autre partie (entre le filet et le mur) étant assez peu intéressante. Le grand avantage d'un tel positionnement est qu'il permet de suivre la balle et de la détecter donc bien avant qu'elle ne passe au niveau du filet. On gagne ainsi un temps précieux puisque la contrainte temporelle est ici notre contrainte la plus forte. On partira donc sur cette solution, en supposant une installation de la caméra à 5 mètres de haut. Cela impose malheureusement une installation un peu plus complexe.
 
@@ -114,7 +115,16 @@ $$ \alpha = \arctan ( \frac{H}{L}) $$
 
 Où $\alpha$ est l'angle de vue, H la hauteur à laquelle où est installée la caméra et L la largeur du terrain. Le terrain étant quasiment carré, on prendra une caméra dont le capteur est carré, et en prenant L comme la largeur du terrain, il ne nous manquera qu'une très petite partie (moins d'un mètre) en partant du filet, ce qui n'aura pour seule conséquence que de ne pas permettre le jeu au filet, ce qui n'est généralement pas la volonté d'un joueur en entraînement. On pourrait aussi utiliser plusieurs caméras, deux ou quatre, pour couvrir tout le terrain. \\ 
 
-Dans le cas d'une seule caméra, avec une résolution de 2048*2048, on obtient, à raz du sol, une résolution de 7.4mm/pixel, ce qui donne 9 pixels pour la balle, et à un mètre du sol, on a 6.0mm/pixel, ce qui donne 11 pixels pour la balle. Ces chiffres
+Dans le cas d'une seule caméra, avec une résolution de 2048*2048, on obtient, à raz du sol, une résolution de 7.4mm/pixel, ce qui donne 9 pixels pour la balle, et à un mètre du sol, on a 6.0mm/pixel, ce qui donne 11 pixels pour la balle. Ces chiffres peuvent paraître particulièrement faible, mais on peut constater sur la figure \ref{img_detectionballe} qu'on arrive très bien à détecter la balle même quand elle ne fait que 13 pixels de diamètre.
+
+\subsubsection{Caractéristiques finales de la caméra}
+
+Maintenant que nous avons les données sur la résolution de la caméra qu'il est souhaitable d'avoir, nous pouvons donc déterminer le temps d'exposition minimal qu'il convient de prendre pour ne pas avoir de flou de bougé. On prend le cas où la balle est jouée assez haute (3 mètres), on a donc environ 3 mm / pixel. On veut donc que la balle ne se déplace pas de plus de la moitié d'un pixel pendant le temps d'exposition, ce qui donne donc un temps d'exposition minimal de 500$\mu$s. \\
+
+Le problème d'un temps d'exposition aussi faible est que l'image peut ne pas être très lumineuse. Il faut donc une sensibilité assez élevée pour la caméra afin d'avoir une luminosité correcte. La figure \ref{img_detectionballe} montre une photo prise avec un temps d'exposition de 250$\mu$s avec une sensibilité assez élevée de 6400 ISO et une ouverture de F/2.8. Si une telle sensibilité est difficilement atteignable en vidéo, les objectifs permettant d'avoir un tel angle de vue ont généralement une ouverture qui peut aller jusqu'à F/1.2, ce qui rattrape la faiblesse en luminosité. La caméra 4M140 - CXp de Flare\footnote{http://www.adept.net.au/cameras/ioi/pdf/FlareCXP.pdf} semble être dans ce cas une caméra qui répond à tous nos critères, qui sont résumés ci-après : 
+
+
+
 
 % ####################################
 % FIN DE PHRASE ?
@@ -141,7 +151,7 @@ Lors de nos tests nous avions beaucoup de bruit à cause notemment de reflets de
 \subfigure[Image après filtrage du bruit]{\includegraphics[width=0.45\textwidth]{photo_traitement3.png}}
 \subfigure[Cercle détecté à la fin]{\includegraphics[width=0.45\textwidth]{photo_traitement4.png} \label{3figs-c}}
 \caption{Différentes étapes de la détection de la balle}
-\label{3figs}
+\label{img_detectionballe}
 \end{figure}
 
 \paragraph{Détermination du contour et de la position de la balle\\}
@@ -185,48 +195,63 @@ Pour avoir la vitesse il suffit juste de soustraire le nouveau vecteur position 
 \subsubsection{Performances}
 
 % Bouger la partie perf dans la partie détection position  %
-Compte tenu de la vitesse avec laquelle le système doit réagir, nous nous sommes fortement intéressé aux performances du traitement de l'image afin d'augmenter au maximum la fréquence de notre algorithme, et déjà ce dernier nous prenait 70-75ms pour une image au début, ce qui nous a mis un gros coup de doute sur la réalisation de notre idée. Ensuite en essayant sur un ordinateur de bureau récent et puissant nous avons constaté que nous gagnions à peine 5ms par image, mais que OpenCV n'utilisait pas toutes les ressources CPU, uniquement la moitié de la puissance sur place (les 4 coeurs tournaient à 50\% d'après le moniteur système). 
+Compte tenu de la vitesse avec laquelle le système doit réagir, nous nous sommes fortement intéressé aux performances du traitement de l'image afin d'augmenter au maximum la fréquence de notre algorithme. Ce dernier prenait déjà 70-75ms pour une image avant toute optimisation, ce qui nous a fait douter de la possibilité de la réalisation de notre idée. Ensuite, en essayant sur un ordinateur de bureau récent et puissant, nous avons constaté un gain d'à peine 5ms par image, mais OpenCV n'utilisait pas toutes les ressources CPU, uniquement la moitié de la puissance sur place (les 4 coeurs tournaient à 50\% d'après le moniteur système). \\
 
-Nous sommes donc décidés à faire passer les calculs par la carte graphique de cet ordinateur de bureau à travers le module OpenCL de OpenCV (c'est une carte AMD, le module gpu est donc incompatible car écrit en CUDA), ce qui ne fût pas sans difficultés, notamment au niveau des pilotes sous linux. Finalement après quelques jours de configuration le programme s'est mis à tourner sur GPU, et là les gains nous émerveillèrent ! Après application d'une ou 2 fonctions sur gpu le temps passa déjà vers les 50ms. Puis les optimisations diverses ainsi que le portage d'un maximum de fonctions sur GPU nous ont amené à un temps de calcul de 11.5ms par image, en prenant en compte que 3.2ms est due à l'acquisition de l'image à partir du fichier vidéo, à voir si ce temps sera beaucoup plus court avec un système de streaming. Malgré notre bohneur face à cette explosion de performance, le taux de traitement ne plafonne qu'à 88Hz (en FullHD), encore très loin des fréquences des caméras haute vitesse, qui nous intéressaient par la suite (de l'ordre de 500Hz).
+Nous sommes donc décidés à faire passer les calculs par la carte graphique de cet ordinateur de bureau à travers le module OpenCL de OpenCV (c'est une carte AMD, le module gpu d'OpenCV est donc incompatible car écrit en CUDA), ce qui ne fût pas sans difficultés, notamment au niveau des pilotes sous Linux. Finalement après quelques jours de configuration le programme s'est mis à tourner sur GPU, et là les gains nous émerveillèrent ! Après application d'une ou 2 fonctions sur gpu le temps d'exécution tomba dans les environs de 50ms. Puis les optimisations diverses ainsi que le portage d'un maximum de fonctions sur GPU nous ont amené à un temps de calcul de 11.5ms par image, en prenant en compte que 3.2ms est due à l'acquisition de l'image à partir du fichier vidéo. Il sera à voir si ce temps serait beaucoup plus court avec un système en streaming plutôt qu'une lecture sur disque dur. Malgré notre bohneur face à cette explosion de performance, le taux de traitement ne plafonne qu'à 88Hz (en FullHD), encore très loin des fréquences des caméras haute vitesse, qui nous intéressaient par la suite (de l'ordre de 500Hz).\\
 
 On obtient ce tableau \ref{perf_opencv} récapitulatif avec une vidéo 1080p (1920x1080) au format .MOV où il y a beaucoup de bruit (donc application de fonctions de suppression du bruit plus lourdes, plus de détection d'éléments) qui nécessite donc plus de temps à traiter.
 
-\begin{tabular}{|c|c|c|c|}
-\hline
-Temps par image 1080p en ms & CPU sans optimisation & CPU avec optimisation & GPU avec optimisation \\
-\hline
-Lecture Image & NA & 4.1 & 3.06 \\
-\hline
-Filtrage & 38.05 & 29.08 & 2.27\\
-\hline
-Supression du bruit & 2.685 & 2.72 & 3.98\\
-\hline
-Determination des contours & 2.28 & 1.92 & 2\\
-\hline
-Total & 51.99 & 38.48 & 11.37\\
-\hline
-Fréquence (Hz) & 19.23 & 25.99 & 87.95\\
-\hline
-\caption{Temps de calcul par image 1920x1080}
-\label{perf_opencv}
-\end{tabular}
-
+\begin{table}[h]
+	\centering
+		\begin{tabular}{|c|c|c|c|}
+		\hline
+		Temps par image & CPU sans & CPU avec & GPU avec \\
+		1080p en ms & optimisation & optimisation & optimisation \\
+		\hline
+		Lecture Image & NA & 4.1 & 3.06 \\
+		\hline
+		Filtrage & 38.05 & 29.08 & 2.27\\
+		\hline
+		Supression du bruit & 2.685 & 2.72 & 3.98\\
+		\hline
+		Determination des contours & 2.28 & 1.92 & 2\\
+		\hline
+		Total & 51.99 & 38.48 & 11.37\\
+		\hline
+		\textbf{Fréquence (Hz)} & \textbf{19.23} & \textbf{25.99} & \textbf{87.95}\\
+		\hline
+		\end{tabular}
+	\caption{Temps de calcul par image 1920x1080}
+	\label{perf_opencv}
+\end{table}
 
 \subsubsection{Amélioration de la technique}
 
-Malgré tout nous avions imaginé utiliser une imagerie infrarouge pour obtenir directement une image en niveau de gris, où certaines parties de la balle réfléchirait les infrarouges. Ainsi les traitement associés à cette image seraient largement réduit, au niveau du filtrage et de la suppression du bruit. Pour celà nous avions imaginé avoir un éclairage infrarouge qui illumine le demi-court de tennis où est le joueur, et que la balle possède des parties réfléchissante qui ressortiront très clairement sur les images. Pour celà nous avions pensé à coller des bandes réfléchissante sur la balle. Cependant cette solution apparait comme plus que limité car on modifie la surface de rebond de la balle donc sa réaction au sol, et la bande risque de se décoller à tout moment en raison des chocs qui sont appliqués sur cette zone. Nous avions donc imaginé ensuite d'appliquer quelque chose qui réfléchissent les infrarouge et qui adhère fortement à la balle. La zone qui nous paraissait encore la plus propice était la bande blanche parcourant la balle de tennis, car un peu creusée et qu'elle rentre moins en contact lors des rebonds. Et une peinture réfléchissante nous apparut comme une bonne solution car elle peut être appliquée finement sur un contour non droit et adhère relativement bien. De plus les peintures d'isolement utilisées dans le bâtiment sont des des peintures réfléchissantes d'infrarouges.\\
+Malgré tout nous avions imaginé utiliser une imagerie infrarouge pour obtenir directement une image en niveau de gris, où certaines parties de la balle réfléchiraient les infrarouges. Ainsi les traitements associés à cette image seraient largement réduits, au niveau du filtrage et de la suppression du bruit. Pour celà nous avons imaginé avoir un éclairage infrarouge qui illumine le demi-court de tennis où se trouve le joueur, et que la balle possède des parties réfléchissante qui ressortiront très clairement sur les images.\\
 
-Le problème a encore eu lieu au niveau des caméras : au début nous avons regardé le choix en caméra à infrarouges à haute vitesse. Et le choix était assez limité, en général avec des résolution dérisoires proches du VGA, ce qui était trop peu pour notre traitement. Puis nous nous sommes dit qu'il suffirait de prendre une caméra haute vitesse classique et d'appliquer un filtre infrarouge physique devant son objectif (moins de 100€ pour un bon filtre) et donc que cette caméra ne capterait qu'un peu de rouge au niveau des pixels excités par le rayonnement infrarouge. Le problème est que nombre de caméra ont un niveau de sensibilité réduit au domaine du visible voir à un niveau légèrement plus restreint comme on peut le voir sur le graphe du spectre de réponse de la M3. Les infrarouges qui passerait le filtre n'exciterait donc pas les capteur de la caméra et on obtiendrait alors un image tout simplement noire.\\
+Pour celà nous avons pensé à coller des bandes réfléchissante sur la balle. Cependant cette solution apparait comme plus que limité car on modifie la surface de rebond de la balle donc sa réaction au sol, et la bande risque de se décoller à tout moment en raison des chocs qui sont appliqués sur cette zone. Nous avions donc imaginé ensuite d'appliquer quelque chose qui réfléchisse les infrarouges et qui adhère fortement à la balle. La zone qui nous paraissait encore la plus propice était la bande blanche parcourant la balle de tennis, car un peu creusée et qu'elle rentre moins en contact lors des rebonds. Et une peinture réfléchissante nous apparut comme une bonne solution car elle peut être appliquée finement sur un contour non droit et adhère relativement bien. De plus les peintures d'isolement utilisées dans le bâtiment sont des peintures réfléchissantes d'infrarouges et sont donc facilement trouvables dans le commerce et pour un prix tout à fait raisonable.\\
 
-Il est à noter qu'un éclairage infrarouge aurait put aussi constituer une gêne pour le joueur, car ce rayonnement l'aurait chauffé comme le fait un radiateur, et que pendant un effort intense, cela peut être très inconfortable.
+Le problème a encore eu lieu au niveau des caméras : au début nous avons regardé le choix en caméra à infrarouges à haute vitesse. Et le choix était assez limité, en général avec des résolution dérisoires proches du VGA, ce qui était trop peu pour notre traitement. Puis nous nous sommes dit qu'il suffirait de prendre une caméra haute vitesse classique et d'appliquer un filtre infrarouge physique devant son objectif (moins de 100€ pour un bon filtre) et donc que cette caméra ne capterait qu'un peu de rouge au niveau des pixels excités par le rayonnement infrarouge. Le problème est que nombre de caméras ont un niveau de sensibilité réduit au domaine du visible voire un spectre plus restraint n'atteignant même pas les infrarouges proches comme on peut le voir sur le graphe du spectre de réponse de la M3 en figure \ref{img_repspectrm3}. Les infrarouges qui passeraient le filtre n'exciteraient donc pas les capteur de la caméra et on obtiendrait alors une image tout simplement noire.\\
 
-% INSERER GRAPHE REPONSE SPECTRALE M3
+Pour palier au problème de sensibilité du capteur dans l'infrarouge proche, il est tout à fait envisageable de disposer des lampes à infrarouges assez puissantes autour du terrain. Mais il faut prendre en compte que cet éclairage aurait put aussi constituer une gêne pour le joueur, car ce rayonnement l'aurait chauffé comme le fait un radiateur, ce qui pendant un effort intense peut être très désagréable. 
+
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\textwidth]{histom3.jpg}
+\caption{Réponse spectrale de la caméra M3}
+\label{img_repspectrm3}
+\end{center}
+\end{figure}
+
 
 
 
 \subsection{Conclusion}
 
-Pour conclure quand à la détection de la position et de la vitesse linéaire de la balle, la solution de la caméra nous semble la plus pertinente, car le choix d'une caméra compatible apparait comme beaucoup plus aisé, tandis qu'il faut espérer qu'un modèle haut de gamme existe au niveau des lasers à balayage ; ou bien accumuler les lasers simples avec le surcoût qui s'en suit. Ce surcoût est aussi en faveur de la solution caméra, car une bonne caméra avec les réglages qu'il nous faut doit pouvoir être acquise pour environ 1000€, tandis qu'il faut compter à 5 chiffres minimum pour un système laser. Cependant le traitement d'images est bien plus coûteux en temps, ce qui n'est pas sans importance sur ce projet, mais d'après la section concernant les performances, on voit qu'il est tout à fait possible de considérer sérieusement cette option, qui, au final, nous parait la plus sensée.
+Pour conclure quand à la détection de la position et de la vitesse linéaire de la balle, la solution de la caméra nous semble la plus pertinente, car le choix d'une caméra compatible apparait comme beaucoup plus aisé, tandis qu'il faut espérer qu'un modèle haut de gamme existe au niveau des lasers à balayage ; ou bien accumuler les lasers simples avec le surcoût qui s'en suit. Ce surcoût est aussi en faveur de la solution caméra, car une bonne caméra avec les réglages qu'il nous faut doit pouvoir être acquise pour environ 5000€, tandis qu'il faut compter à 5 chiffres minimum pour un système laser. Cependant le traitement d'images est bien plus coûteux en temps, ce qui n'est pas sans importance sur ce projet, mais d'après la section concernant les performances, on voit qu'il est tout à fait possible de considérer sérieusement cette option, qui, au final, nous parait la plus sensée. L'option utilsant le rayonnement infrarouge semble aussi une option à creuser puisqu'elle permet de réaliser des parties du traitement de l'image de manière physique, réduisant donc les temps de traitement. Nous avons aussi trouvé la réponse spectrale de la caméra de Flare qui présente une certaine sensibilité dans l'infrarouge proche, ce qui confirme le choix pour cette caméra. Néanmoins, faute de moyens, nous n'avons pu conclure sur la faisabilité d'une telle solution.
+
+
 
 
 \section{Détection de la vitesse de rotation}
@@ -250,10 +275,6 @@ Finalement après moult recherches nous avons trouvé la caméra M3 de IDT qui c
 Mais le véritable problème de cette solution était la vitesse à laquelle il fallait traiter les images (2ms à 500 images par seconde). Nous n'avons pas réalisé d'algorithme pour cette détection de vitesse de rotation, mais il serait à notre goût plus coûteux que la détection des coordonnées x,y,z. Compte tenu des performances que l'on a atteint d'après le tableau \ref{perf_opencv} cette idée nous est apparu très dur à mettre en place.
 
 
-
-
-% Parler de la partie filtrage infrarouge dans une partie amélioration de la technique de détection dans la partie détection position, faire un rappel ici %
-% PARLER DES CAMERA INFRAROUGE
 Comme nous l'avons vu précédemment une image obtenu par infrarouge serait plus facilement traitable mais les contraintes demeurent les mêmes que pour la détection de la position de la balle.
 
 
@@ -275,8 +296,6 @@ Ce n'est pas parce que nous avons abandonné l'idée d'une caméra ultra-rapide 
 En connaissant la vitesse de la balle et la vitesse de la caméra, on peut en déduire la vitesse de rotation de la balle grâce aux nombre de trainées et à leur longueur. Seulement on a imaginé ici le cas avec une seule composante. En imaginant que la rotation ait aussi une composante selon l'axe de la largueur de la feuille on imagine que les trainées ressembleront à des virgules et que le calcul des vitesses de rotations se complexifie largement. Ajoutons maintenant 2 composantes à notre vitesse de translation, et une troisième composante à la rotation, ce qui représente la réalité. Eh bien on se retrouve avec quelque chose d'indigeste et nous n'avons rien put conclure de ces trainé en multidimensionnel ... Nous avons imaginé mettre des marqueurs parfois exotiques pour avoir des trainées distinctes selon les axes en jeu, mais rien de concluant n'est ressorti de cette étude, et nous avons donc définitivement abandonné l'idée de capter cette information de rotation directement par une(des) caméra(s).\\
 
 Nous avions aussi imaginé la solution infrarouge avec une caméra normale pour obtenir notre trainée, mais les problèmes intrinsèques à ces trainées restaient toujours présent et nous n'avons donc pas put conclure sur quelque chose de satisfaisant.\\
-
-\subsubsection{Algorithmie}
 
 
 \subsection{Balle intelligente}
@@ -316,13 +335,12 @@ Cependant le système actuel ne serait pas capable de fournir la vitesse de rota
 \end{figure}
 
 
-\subsubsection{Algorithmie}
-
 
 
 \subsection{Conclusion}
 
 Par rapport à la détermination de la vitesse de rotation de la balle, notre position a énormément évolué. Les parties ci-dessus décrivent chronologiquement nos points de vue et expliquent pourquoi nous avons abandonné ces idées, comme par exemple à cause du coût, des définitions extrêmes et du temps de traitement trop important avec des caméra ultra rapides, du problème d'algorithmie avec une caméra simple, et des problèmes inhérent à l'usage d'une balle ou d'une raquette intelligente.\\
+
 Finalement nous avons décidé d'abandonner la détermination de cette vitesse de rotation par notre partie et c'est le module mathématique qui se charge de trouver cette vitesse avec l'effet magnus visionné par les captures de position et de vitesse. Le détail de ce calcul sera détaillé plus tard. Cependant si Babolat conçoit une raquette fournissant ces informations ou que la puissance des ordinateur explose encore, avec l'utilisation de caméras très rapides alors remise au goût du jour, nous pourrions déterminer précisément ces données.
 
 
@@ -332,7 +350,7 @@ Finalement nous avons décidé d'abandonner la détermination de cette vitesse d
 
 
 
-\section{Conclusion}
+
 
 
 
@@ -411,50 +429,6 @@ Quelques tests seraient nécessaires afin d'évaluer si la solution qui réutili
 
 
 
-\chapter{Déplacement du mur}
-
-
-
-\paragraph{Temps d'exposition réglable jusqu'à 1 micro-seconde\\}
-
-On peut donc régler la temps d'exposition jusqu'à des valeurs qui permettent de supprimer tout flou sur notre balle. Le flou n'existe pas si la balle ne parcourt pas plus d'un pixel durant le temps d'exposition. Avec 1 micro-seconde, la balle a le temps de parcourir 0.028mm ce qui est de loin inférieur à ce que représente un pixel à une distance raisonable. Le problème qui apparait alors est la luminosité, puisque pour avoir une image exploitable, il est nécessaire que suffisament de lumière soit parvenue jusqu'au capteur durant le temps d'exposition, paramètre qui dépend bien sûr directement du temps d'exposition mais aussi de la sensibilité (mesurée en ISO) et de l'ouverture de l'objectif (sans unité). C'est là qu'interviennent deux autres caractéristiques de cette caméra. 
-
-\paragraph{Sensibilité et monture C\\}
-
-La sensibilité de cette caméra est de 1000 ISO en mode couleur et 3000 ISO en mode niveaux de gris, ce qui est assez élevé. La sensibilité représente la sensibilité du capteur à la lumière : ainsi, à quantité de lumière égale, une image prise à sensibilité 1000 ISO sera bien moins lumineuse qu'une image prise avec une sensibilité de 2000 ISO. 
-
-Mais la luminosité dépend aussi d'un dernier paramètre qui est l'ouverture de l'objectif et c'est pour cela que la monture C de la caméra est importante. Les objectifs ayant une monture C (type d'attache entre la caméra et l'objectif) ont généralement des ouvertures très grandes ce qui permet donc d'avoir une très grande luminosité. \\
-
-
-Une condition nécessaire pour l'utilisation de la caméra est de pouvoir l'utiliser en direct et donc de disposer d'un lien entre la caméra et la solution de calcul. La caméra citée précédemment convient donc tout à fait puisqu'elle dispose d'un lien Caméra Link, mais un lien Gigabit Ethernet aurait aussi pu faire l'affaire.
-
-\paragraph{Limitations\\}
-
-La principale limitation de l'utilisation de telles caméras (il existe de nombreuses caméras aux caractéristiques similaires à celles de la caméra M3 présentée précédemment) est la capacité à traiter les images en temps-réel. Un algorithme simple mais efficace pour la détection d'une balle est d'isoler la couleur de la balle (en utilisant le système de représentation des couleurs HSV plutôt que RGB), éliminer le bruit grâce à un processus de dilation et érosion et enfin de trouver les cercles de diamètre minimaux entourant les éléments restant. La trajectoire de la balle étant continue, on peut donc déterminer quel élément représente la balle et quels éléments représentent du bruit qui aurait résisté à l'étape d'élimination du bruit. Le temps d'éxécution est donc dépendant de la résolution des images obtenues, résolution qui doit cependant être suffisament élevée pour pouvoir détecter les rainures de la balle. 
-
-
-\paragraph{Positionnement des caméras\\}
-
-Caméra au plafond pas cool toussa, plutot sur bords du terrain du coup. Petits calculs pour montrer le truc et schéma si possible
-
-
-\paragraph{Résultats\\}
-
-Nous avons effectué quelques tests de détection de la balle, en faisant varier aussi bien la distance de la balle à la caméra, les conditions d'éclairages et les résolutions d'images, résultats suivants (temps d'éxécution)
-
-
-\paragraph{Amélioration de la technique de détection\\}
-
-L'étape de filtrage de l'image afin de ne garder que les éléments ayant la même couleur que la balle peut se simplifier grandement avec utilisation d'un peu de matériel peu onéreux et quelques propriétés optiques. Si les images captées par la caméra sont difficilement exploitables en l'état, c'est notamment car elles contiennent beaucoup trop d'informations, dont la plupart ne servent à rien dans notre cas. Une technique permettant d'obtenir des images beaucoup plus simples à exploiter serait donc de réaliser un filtrage avant le capteur, afin de ne garder que ce qui est intéressant sur l'image. \\
-
-On pourrait alors utiliser un filtre ne laissant passer que la couleur de la balle de tennis mais cette solution est bien trop imprécise pour être utilisée (dépend fortement des conditions d'éclairage). L'idéal serait donc de pouvoir éclairer la balle d'une couleur bien précise et de filtrer cette couleur, mais cette solution risque fortement de pertuber le joueur. \\
-
-On peut donc alors s'intéresser à la partie du spectre non visible, soit les infrarouges ou les ultra-violets. En effet les éléments reflètent bien moins dans ces parties du spectre que dans le spectre du visible, ce qui permet alors, dans le cas où on arrive à bien faire réfléchir notre élément d'intérêt (la balle) dans ces parties du spectre, d'isoler cet élément. Pour réaliser cela, on peut simplement enduire la balle de peinture qui reflète l'infrarouge, on aura alors un seul élément bien visible dans cette partie du spectre, s'il est suffisament éclairé. On peut pour palier à ça utiliser des lampes infrarouges qui éclaireront le terrain, sans gêner le joueur. Il ne suffit plus alors que d'utiliser un filtre ne laissant pas passer le spectre visible mais uniquement les infrarouges, ce qui se trouve assez facilement et est relativement peu couteux.
-
-
-\subsubsection{Utilisation de caméra plus lente}
-
-Marqueurs sur la balle, temps d'expo volontairement long .... 
 
 
 
