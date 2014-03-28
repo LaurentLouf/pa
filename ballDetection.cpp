@@ -18,6 +18,7 @@
 using namespace cv;
 using namespace std;
 //#define DEBUG
+#define PICTURE
 
 //#define MAX_TREATED_LOOP 3
 //#define MAX_UNTREATED_LOOP 20
@@ -172,7 +173,11 @@ int main( int argc, char** argv )
                 cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
             #endif
             #ifdef DISPLAY
-                char c = (char)waitKey(100000);
+                #ifdef PICTURE
+                    char c = (char)waitKey(100000);
+                #else
+                    char c = (char)waitKey(1);
+                #endif
                 if( c == 27 )
                 {
                     //break;

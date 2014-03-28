@@ -2,6 +2,7 @@
 #define LIB_H
  
 using namespace std;
+#define OMP
 
 //---------------------------------Constantes
 
