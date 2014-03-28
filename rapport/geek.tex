@@ -174,13 +174,43 @@ Pour avoir la vitesse il suffit juste de soustraire le nouveau vecteur position 
 
 \subsubsection{Performances}
 
+% Bouger la partie perf dans la partie détection position  %
+Compte tenu de la vitesse avec laquelle le système doit réagir, nous nous sommes fortement intéressé aux performances du traitement de l'image afin d'augmenter au maximum la fréquence de notre algorithme, et déjà ce dernier nous prenait 70-75ms pour une image au début, ce qui nous a mis un gros coup de doute sur la réalisation de notre idée. Ensuite en essayant sur un ordinateur de bureau récent et puissant nous avons constaté que nous gagnions à peine 5ms par image, mais que OpenCV n'utilisait pas toutes les ressources CPU, uniquement la moitié de la puissance sur place (les 4 coeurs tournaient à 50\% d'après le moniteur système). 
+
+Nous sommes donc décidés à faire passer les calculs par la carte graphique de cet ordinateur de bureau à travers le module OpenCL de OpenCV (c'est une carte AMD, le module gpu est donc incompatible car écrit en CUDA), ce qui ne fût pas sans difficultés, notamment au niveau des pilotes sous linux. Finalement après quelques jours de configuration le programme s'est mis à tourner sur GPU, et là les gains nous émerveillèrent ! Après application d'une ou 2 fonctions sur gpu le temps passa déjà vers les 50ms. Puis les optimisations diverses ainsi que le portage d'un maximum de fonctions sur GPU nous ont amené à un temps de calcul de 11.5ms par image, en prenant en compte que 3.2ms est due à l'acquisition de l'image à partir du fichier vidéo, à voir si ce temps sera beaucoup plus court avec un système de streaming. Malgré notre bohneur face à cette explosion de performance, le taux de traitement ne plafonne qu'à 88Hz (en FullHD), encore très loin des fréquences des caméras haute vitesse, qui nous intéressaient par la suite (de l'ordre de 500Hz).
+
+On obtient ce tableau \ref{perf_opencv} récapitulatif avec une vidéo 1080p (1920x1080) au format .MOV où il y a beaucoup de bruit (donc application de fonctions de suppression du bruit plus lourdes, plus de détection d'éléments) qui nécessite donc plus de temps à traiter.
+
+\begin{tabular}{|c|c|c|c|}
+\hline
+Temps par image 1080p en ms & CPU sans optimisation & CPU avec optimisation & GPU avec optimisation \\
+\hline
+Lecture Image & NA & 4.1 & 3.06 \\
+\hline
+Filtrage & 38.05 & 29.08 & 2.27\\
+\hline
+Supression du bruit & 2.685 & 2.72 & 3.98\\
+\hline
+Determination des contours & 2.28 & 1.92 & 2\\
+\hline
+Total & 51.99 & 38.48 & 11.37\\
+\hline
+Fréquence (Hz) & 19.23 & 25.99 & 87.95\\
+\hline
+\caption{Temps de calcul par image 1920x1080}
+\label{perf_opencv}
+\end{tabular}
 
 
+\subsubsection{Amélioration de la technique}
 
+Malgré tout nous avions imaginé utiliser une imagerie infrarouge pour obtenir directement une image en niveau de gris, où certaines parties de la balle réfléchirait les infrarouges. Ainsi les traitement associés à cette image seraient largement réduit, au niveau du filtrage et de la suppression du bruit. Pour celà nous avions imaginé avoir un éclairage infrarouge qui illumine le demi-court de tennis où est le joueur, et que la balle possède des parties réfléchissante qui ressortiront très clairement sur les images. Pour celà nous avions pensé à coller des bandes réfléchissante sur la balle. Cependant cette solution apparait comme plus que limité car on modifie la surface de rebond de la balle donc sa réaction au sol, et la bande risque de se décoller à tout moment en raison des chocs qui sont appliqués sur cette zone. Nous avions donc imaginé ensuite d'appliquer quelque chose qui réfléchissent les infrarouge et qui adhère fortement à la balle. La zone qui nous paraissait encore la plus propice était la bande blanche parcourant la balle de tennis, car un peu creusée et qu'elle rentre moins en contact lors des rebonds. Et une peinture réfléchissante nous apparut comme une bonne solution car elle peut être appliquée finement sur un contour non droit et adhère relativement bien. De plus les peintures d'isolement utilisées dans le bâtiment sont des des peintures réfléchissantes d'infrarouges.\\
 
+Le problème a encore eu lieu au niveau des caméras : au début nous avons regardé le choix en caméra à infrarouges à haute vitesse. Et le choix était assez limité, en général avec des résolution dérisoires proches du VGA, ce qui était trop peu pour notre traitement. Puis nous nous sommes dit qu'il suffirait de prendre une caméra haute vitesse classique et d'appliquer un filtre infrarouge physique devant son objectif (moins de 100€ pour un bon filtre) et donc que cette caméra ne capterait qu'un peu de rouge au niveau des pixels excités par le rayonnement infrarouge. Le problème est que nombre de caméra ont un niveau de sensibilité réduit au domaine du visible voir à un niveau légèrement plus restreint comme on peut le voir sur le graphe du spectre de réponse de la M3. Les infrarouges qui passerait le filtre n'exciterait donc pas les capteur de la caméra et on obtiendrait alors un image tout simplement noire.\\
 
+Il est à noter qu'un éclairage infrarouge aurait put aussi constituer une gêne pour le joueur, car ce rayonnement l'aurait chauffé comme le fait un radiateur, et que pendant un effort intense, cela peut être très inconfortable.
 
-
+% INSERER GRAPHE REPONSE SPECTRALE M3
 
 
 
@@ -202,21 +232,18 @@ Cette solution fût vite abandonnée à cause de ce problème de résolution et 
 
 Finalement après moult recherches nous avons trouvé la caméra M3 de IDT qui correspondait assez bien à nos attentes à un prix contenu (15000€ tout de même), puis nous avons trouvé la Edgertronic qui nous paraissait miraculeuse pour son tarif, mais nous sommes vite rendus compte qu'elle ne proposait bizarrement pas de mode streaming, et ne pouvait fournir une vidéo que par carte SD, ce qui était plus que gênant pour notre système temps réel.\\
 
-Mais le véritable problème de cette solution était la vitesse à laquelle il fallait traiter les images (2ms à 500 images par seconde). Nous n'avons pas réalisé d'algorithme pour cette détection de vitesse de rotation, mais il serait à notre goût plus coûteux que la détection des coordonnées x,y,z ;
-% Bouger la partie perf dans la partie détection position  %
- et déjà ce dernier nous prenait 70-75ms pour une image au début, ce qui nous a mis un gros coup de doute sur la réalisation de notre idée. Ensuite en essayant sur un ordinateur de bureau récent et puissant nous avons constaté que nous gagnions à peine 5ms par image, mais que OpenCV n'utilisait pas toutes les ressources CPU, uniquement la moitié de la puissance sur place (les 4 coeurs tournaient à 50\% d'après le moniteur système). Nous sommes donc décidés à faire passer les calculs par la carte graphique de cet ordinateur de bureau à travers le module OpenCL de OpenCV (c'est une carte AMD, le module gpu est donc incompatible car écrit en CUDA), ce qui ne fût pas sans difficultés, notamment au niveau des pilotes sous linux. Finalement après quelques jours de configuration le programme s'est mis à tourner sur GPU, et là les gains nous émerveillèrent ! Après application d'une ou 2 fonctions sur gpu le temps passa déjà vers les 50ms. Puis les optimisations diverses ainsi que le portage d'un maximum de fonctions sur GPU nous ont amené à un temps de calcul de 11.5ms par image, en prenant en compte que 3.2ms est due à l'acquisition de l'image à partir du fichier vidéo, à voir si ce temps sera beaucoup plus court avec un système de streaming. Malgré notre bohneur face à cette explosion de performance, le taux de traitement ne plafonne qu'à 85Hz (en FullHD), encore très loin des 500Hz avec un algorithme sûrement plus complexe. Voilà pourquoi nous avons définitivement abandonné l'idée d'une caméra ultra-rapide sur ce projet.
+Mais le véritable problème de cette solution était la vitesse à laquelle il fallait traiter les images (2ms à 500 images par seconde). Nous n'avons pas réalisé d'algorithme pour cette détection de vitesse de rotation, mais il serait à notre goût plus coûteux que la détection des coordonnées x,y,z. Compte tenu des performances que l'on a atteint d'après le tableau \ref{perf_opencv} cette idée nous est apparu très dur à mettre en place.
+
+
 
 
 % Parler de la partie filtrage infrarouge dans une partie amélioration de la technique de détection dans la partie détection position, faire un rappel ici %
 % PARLER DES CAMERA INFRAROUGE
+Comme nous l'avons vu précédemment une image obtenu par infrarouge serait plus facilement traitable mais les contraintes demeurent les mêmes que pour la détection de la position de la balle.
 
-Malgré tout nous avions imaginé utiliser une imagerie infrarouge pour obtenir directement une image en niveau de gris, où certaines parties de la balle réfléchirait les infrarouges. Ainsi les traitement associés à cette image seraient largement réduit, au niveau du filtrage et de la suppression du bruit. Pour celà nous avions imaginé avoir un éclairage infrarouge qui illumine le demi-court de tennis où est le joueur, et que la balle possède des parties réfléchissante qui ressortiront très clairement sur les images. Pour celà nous avions pensé à coller des bandes réfléchissante sur la balle. Cependant cette solution apparait comme plus que limité car on modifie la surface de rebond de la balle donc sa réaction au sol, et la bande risque de se décoller à tout moment en raison des chocs qui sont appliqués sur cette zone. Nous avions donc imaginé ensuite d'appliquer quelque chose qui réfléchissent les infrarouge et qui adhère fortement à la balle. La zone qui nous paraissait encore la plus propice était la bande blanche parcourant la balle de tennis, car un peu creusée et qu'elle rentre moins en contact lors des rebonds. Et une peinture réfléchissante nous apparut comme une bonne solution car elle peut être appliquée finement sur un contour non droit et adhère relativement bien. De plus les peintures d'isolement utilisées dans le bâtiment sont des des peintures réfléchissantes d'infrarouges.\\
 
-Le problème a encore eu lieu au niveau des caméras : au début nous avons regardé le choix en caméra à infrarouges à haute vitesse. Et le choix était assez limité, en général avec des résolution dérisoires proches du VGA, ce qui était trop peu pour notre traitement. Puis nous nous sommes dit qu'il suffirait de prendre une caméra haute vitesse classique et d'appliquer un filtre infrarouge physique devant son objectif (moins de 100€ pour un bon filtre) et donc que cette caméra ne capterait qu'un peu de rouge au niveau des pixels excités par le rayonnement infrarouge. Le problème est que nombre de caméra ont un niveau de sensibilité réduit au domaine du visible voir à un niveau légèrement plus restreint comme on peut le voir sur le graphe du spectre de réponse de la M3. Les infrarouges qui passerait le filtre n'exciterait donc pas les capteur de la caméra et on obtiendrait alors un image tout simplement noire.\\
 
-Il est à noter qu'un éclairage infrarouge aurait put aussi constituer une gêne pour le joueur, car ce rayonnement l'aurait chauffé comme le fait un radiateur, et que pendant un effort intense, cela peut être très inconfortable.
 
-% INSERER GRAPHE REPONSE SPECTRALE M3
 
 \subsection{Caméra normale}
 

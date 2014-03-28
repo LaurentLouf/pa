@@ -89,7 +89,7 @@ int main( int argc, char** argv )
     Size subPixWinSize(10,10), winSize(31,31);
 
     // Get the video (filename or device)
-    cap.open("MVI_7320.MOV");
+    cap.open("IMG_6214.JPG");
     if( !cap.isOpened() )
     {
         cout << "Could not initialize capturing...\n";
@@ -145,7 +145,7 @@ int main( int argc, char** argv )
     int numberOfTreatedLoop = 0, numberOfNonTreatedLoop = 0, noTreatment = 0;
     for(i=0 ; i < n ; i++)
     {
-        if(i < 120)
+        if(i < -120)
             noTreatment = 1;
         if(noTreatment <= 0)//la balle doit être dans une position intéressante pour la vue
         {
@@ -163,7 +163,7 @@ int main( int argc, char** argv )
             if(ballState_t2.vy < 0) // si la balle revient en arrière, on arrete le traitement un instant
             {
                 noTreatment = 3;
-            }
+            }cout << ballCircle.radius<< endl;
             copyStateToMaths(ballState_t1, ballState_t2, CI);
 
             // Start maths part
@@ -174,7 +174,7 @@ int main( int argc, char** argv )
                 cout << "x : "<< ballState.x << "   y : " << ballState.y << "   z : " << ballState.z <<endl;
             #endif
             #ifdef DISPLAY
-                char c = (char)waitKey(1);
+                char c = (char)waitKey(100000);
                 if( c == 27 )
                 {
                     //break;
