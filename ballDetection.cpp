@@ -163,7 +163,7 @@ int main( int argc, char** argv )
             if(ballState_t2.vy < 0) // si la balle revient en arrière, on arrete le traitement un instant
             {
                 noTreatment = 3;
-            }cout << ballCircle.radius<< endl;
+            }
             copyStateToMaths(ballState_t1, ballState_t2, CI);
 
             // Start maths part

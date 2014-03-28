@@ -122,7 +122,7 @@ Dans le cas d'une seule caméra, avec une résolution de 2048*2048, on obtient, 
 
 \subsubsection{Algorithmie}
 
-\paragraph{Seuilage sur la teinte\\}
+\paragraph{Seuillage sur la teinte\\}
 
 Nous avons donc développé notre algorithme de detection et de calcul de la position de la balle. La première étape était de detecter les pixels correpondant à la balle dans l'image. La balle étant jaune vif nous avons décidé de nous baser sur la teinte pour detecter les pixels en question. La première étape de l'algorithme est donc de convertir l'image définie dans l'espace RGB (Red-Green-Blue : rouge, vert, bleu) vers l'espace HSV (Hue-Saturation-Value : teinte, saturation, valeur). Nous avons constaté que la balle entière avait une teinte comprise entre 80 et 95 (on peut réduire l'écart mais avec le risque qu'une partie de la balle ne soit pas détecté, en contrepartie on récupère moins de bruit). Nous appliquons donc une fonction de seuil qui remplace les pixels dont la teinte est entre nos valeurs limites par un pixel blanc et les autres par un pixel noir.\\
 
@@ -353,8 +353,6 @@ Finalement nous avons décidé d'abandonner la détermination de cette vitesse d
 
 
 
-
-
 \chapter{Détection du joueur}
 
 On s'intéresse dans cette partie à la détection du joueur, pour pouvoir décider de la position de la balle que l'on renvoie avec le mur en fonction du style de jeu qui aura été décidé par le joueur lui-même. On s'intéressera donc aussi bien à la position du joueur mais aussi à son déplacement, pour pouvoir déterminer son intention (pour pouvoir prendre le joueur à contre-pied par exemple), mais aussi l'effort fourni depuis le début de l'entraînement (nombre de calories brûlées, distance parcourue et autres statistiques du genre). \\
@@ -477,3 +475,10 @@ Au final tout cela nous donne un temps de réaction de 365ms, soit une marge de 
 Les controlleurs seront des systèmes asservis de type PID qui recevront une consigne de position et controlleront les électrovannes pour que chaque mur se retrouve dans la position correspondant à la consigne assignée. Il faudra donc des vannes qui ne soient pas du type On/Off pour un fonctionnement fin. Les controlleurs PID devront donc être les plus performants possible pour atteindre la consigne le plus rapidement possible et assurer la réaction du mur en 260 ms (inertie du mur + temps de réaction des électrovannes) en évitant bien sûr les instabilités.\\
 L'ordinateur pourra envoyer de nouvelles consignes plus fin s'il a eu le temps d'en calculer une autre avant l'impact pour que le mur soit dans une meilleure position. Les controlleurs devront donc être capables de s'adapter rapidement à une nouvelle consigne, ce qui ne devrait pas poser de problème avec un controlleur de type PID.
 
+
+\chapter{Conclusion}
+
+Pour conclure sur la partie électronique et informatique, on peut constater que de nombreuses voies ont été explorées. Parmi Celle concernant la détection de l'état de la balle, hors rotation, nous avons vu qu'une acquisition par caméra convenait très bien à nos besoins en termes de temps, de qualité et de prix. Car une bonne caméra reviendrait à environ 5000€ et un ordinateur relativement puissant à environ 1000€.\\
+Au niveau de la vitesse de rotation, comme on l'a vu, l'acquisition coûterait trop cher à la fois en temps et en prix, bien que ce dernier soit un paramètre modulable. Du coup c'est le module mathématiques qui s'occupe de calculer une vitesse approximative mais que l'on a jugé suffisamment précise dans un premier temps.\\
+Pour détecter le joueur la solution laser est pratique car elle ne nécessite pas de traitements importants, mais elle coûte relativement cher, notamment lorsque l'on sait que l'on a déjà un capteur capable de tirer cette information : la caméra qui détecte la position et la trajectoire de la balle. Pour un même résultat la solution caméra est donc beaucoup plus intéressante financièrement. Cependant ceci nécessite encore une puissance de calcul supplémentaire. A Partir de ceci et de la puissance de calcul nécessaire pour le module mathématiques, une configuration avec deux unités de calcul qui communique par ethernet est solution qui nous semble très intéressante, qui chiffrera donc à environ 2000€.\\
+Enfin au niveau de la commande du mur, la simple utilisation de controlleurs PID avec des électrovannes est une solution commune qui fonctionne bien avec ce genre de système, de plus cette technologie est suffisamment réactive et peut être facilement mise à jour, ce qui est adapté à notre système. Enfin le coût reste contenu.\\
